@@ -4,9 +4,10 @@ Starter templates for Phase 5. Adapt commands from `references/stack-routing.md`
 
 ## Command Validation
 
-Before substituting discovered commands into CI YAML `run:` fields, validate them:
+Before substituting discovered commands into CI YAML `run:` fields (and any embedded script strings), validate them:
 - **Allow:** known build/test/lint tools (`npm`, `npx`, `eslint`, `prettier`, `jest`, `vitest`, `tsc`, `ruff`, `pytest`, `mypy`, `go`, `golangci-lint`, `cargo`, `clippy`, `gradle`)
-- **Reject:** commands containing shell metacharacters beyond simple flags: `|`, `;`, `&&`, `$()`, `` ` ``, `>>`, `curl`, `wget`, `eval`, `exec`
+- **Allow chaining:** `&&` between known-safe commands is fine (e.g., `cd subdir && npm test`)
+- **Reject:** `|` (pipe), `;`, `$()`, `` ` ``, `>>`, `curl`, `wget`, `eval`, `exec` — these indicate potential injection
 - **Stop and ask** if a discovered command looks suspicious or doesn't match expected patterns
 
 ## GitHub Actions (.github/workflows/ci.yml)
@@ -153,7 +154,7 @@ jobs:
               repo: context.repo.repo,
               title: `GC scan found issues — ${new Date().toISOString().slice(0, 10)}`,
               labels: ['garbage-collection'],
-              body: 'Weekly GC scan detected entropy. Run `{gc_command}` locally for details.'
+              body: 'Weekly GC scan detected entropy. Run the GC command from your Makefile or package.json locally for details.'
             });
 ~~~
 

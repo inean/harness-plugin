@@ -36,7 +36,7 @@ Transforms a repository into an agent-ready environment through 8 phases:
 
 ```bash
 # Clone and copy to user-level skills (available across all projects)
-git clone --depth 1 https://github.com/Gizele1/harness-init.git /tmp/harness-init
+rm -rf /tmp/harness-init 2>/dev/null; git clone --depth 1 https://github.com/Gizele1/harness-init.git /tmp/harness-init
 mkdir -p ~/.claude/skills/omc-learned/harness-init/references
 cp /tmp/harness-init/SKILL.md ~/.claude/skills/omc-learned/harness-init/
 cp /tmp/harness-init/references/*.md ~/.claude/skills/omc-learned/harness-init/references/
@@ -47,7 +47,7 @@ rm -rf /tmp/harness-init
 
 ```bash
 # Clone and copy to project-level skills
-git clone --depth 1 https://github.com/Gizele1/harness-init.git /tmp/harness-init
+rm -rf /tmp/harness-init 2>/dev/null; git clone --depth 1 https://github.com/Gizele1/harness-init.git /tmp/harness-init
 mkdir -p .claude/skills/harness-init/references
 cp /tmp/harness-init/SKILL.md .claude/skills/harness-init/
 cp /tmp/harness-init/references/*.md .claude/skills/harness-init/references/
@@ -58,7 +58,7 @@ rm -rf /tmp/harness-init
 
 ```bash
 # Clone and copy to Codex skills directory
-git clone --depth 1 https://github.com/Gizele1/harness-init.git /tmp/harness-init
+rm -rf /tmp/harness-init 2>/dev/null; git clone --depth 1 https://github.com/Gizele1/harness-init.git /tmp/harness-init
 mkdir -p .agents/skills/harness-init/references
 cp /tmp/harness-init/SKILL.md .agents/skills/harness-init/
 cp /tmp/harness-init/references/*.md .agents/skills/harness-init/references/

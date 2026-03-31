@@ -36,7 +36,7 @@
 
 ```bash
 # 克隆并复制到用户级 skills（跨所有项目可用）
-git clone --depth 1 https://github.com/Gizele1/harness-init.git /tmp/harness-init
+rm -rf /tmp/harness-init 2>/dev/null; git clone --depth 1 https://github.com/Gizele1/harness-init.git /tmp/harness-init
 mkdir -p ~/.claude/skills/omc-learned/harness-init/references
 cp /tmp/harness-init/SKILL.md ~/.claude/skills/omc-learned/harness-init/
 cp /tmp/harness-init/references/*.md ~/.claude/skills/omc-learned/harness-init/references/
@@ -47,7 +47,7 @@ rm -rf /tmp/harness-init
 
 ```bash
 # 克隆并复制到项目级 skills
-git clone --depth 1 https://github.com/Gizele1/harness-init.git /tmp/harness-init
+rm -rf /tmp/harness-init 2>/dev/null; git clone --depth 1 https://github.com/Gizele1/harness-init.git /tmp/harness-init
 mkdir -p .claude/skills/harness-init/references
 cp /tmp/harness-init/SKILL.md .claude/skills/harness-init/
 cp /tmp/harness-init/references/*.md .claude/skills/harness-init/references/
@@ -58,7 +58,7 @@ rm -rf /tmp/harness-init
 
 ```bash
 # 克隆并复制到 Codex skills 目录
-git clone --depth 1 https://github.com/Gizele1/harness-init.git /tmp/harness-init
+rm -rf /tmp/harness-init 2>/dev/null; git clone --depth 1 https://github.com/Gizele1/harness-init.git /tmp/harness-init
 mkdir -p .agents/skills/harness-init/references
 cp /tmp/harness-init/SKILL.md .agents/skills/harness-init/
 cp /tmp/harness-init/references/*.md .agents/skills/harness-init/references/

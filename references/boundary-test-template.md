@@ -101,7 +101,16 @@ function scanFile(filePath: string): Array<{ file: string; line: number; imports
 
 // Collect all source files recursively
 function collectFiles(dir: string, ext: string[]): string[] {
-  // ... recursive directory walk, filter by extension
+  const results: string[] = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const fullPath = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      results.push(...collectFiles(fullPath, ext));
+    } else if (ext.some(e => entry.name.endsWith(e))) {
+      results.push(fullPath);
+    }
+  }
+  return results;
 }
 
 describe('Architecture Boundary Test', () => {
@@ -120,10 +129,12 @@ describe('Architecture Boundary Test', () => {
     }
   });
 
-  test('known violations count only shrinks (ratchet)', () => {
-    const currentCount = allViolations.length;
-    const baselineCount = knownViolations.length;
-    expect(currentCount).toBeLessThanOrEqual(baselineCount);
+  test('known violations only shrink, never grow (ratchet)', () => {
+    const baselineSet = new Set(knownViolations.map(v => `${v.file}:${v.imports}`));
+    const currentSet = new Set(allViolations.map(v => `${v.file}:${v.imports}`));
+    const added = [...currentSet].filter(v => !baselineSet.has(v));
+    expect(added).toEqual([]);
+    expect(allViolations.length).toBeLessThanOrEqual(knownViolations.length);
   });
 });
 ```
@@ -163,25 +174,25 @@ def scan_imports(file_path: Path) -> list[dict]:
     if not from_layer:
         return violations
 
+    def _check_target(target: str, node: ast.AST) -> None:
+        for layer in LAYER_RULES:
+            if layer in target.split("."):
+                if layer != from_layer and layer not in LAYER_RULES[from_layer]:
+                    violations.append({
+                        "file": str(file_path),
+                        "line": node.lineno,
+                        "imports": target,
+                        "from_layer": from_layer,
+                        "to_layer": layer,
+                    })
+
     for node in ast.walk(tree):
-        target = None
         if isinstance(node, ast.Import):
             for alias in node.names:
-                target = alias.name
+                _check_target(alias.name, node)
         elif isinstance(node, ast.ImportFrom) and node.module:
-            target = node.module
+            _check_target(node.module, node)
 
-        if target:
-            for layer in LAYER_RULES:
-                if layer in target.split("."):
-                    if layer != from_layer and layer not in LAYER_RULES[from_layer]:
-                        violations.append({
-                            "file": str(file_path),
-                            "line": node.lineno,
-                            "imports": target,
-                            "from_layer": from_layer,
-                            "to_layer": layer,
-                        })
     return violations
 
 
@@ -203,12 +214,20 @@ def test_no_new_violations():
 
 def test_ratchet_only_shrinks():
     known = json.loads(KNOWN_VIOLATIONS_PATH.read_text()) if KNOWN_VIOLATIONS_PATH.exists() else []
+    known_set = {(v["file"], v["imports"]) for v in known}
+
     all_violations = []
     for py_file in Path("src").rglob("*.py"):
         all_violations.extend(scan_imports(py_file))
+
+    current_set = {(v["file"], v["imports"]) for v in all_violations}
+    added = current_set - known_set
+    assert not added, (
+        f"New violations added to baseline: {added}. "
+        "KNOWN_VIOLATIONS can only shrink — fix violations, never add new ones."
+    )
     assert len(all_violations) <= len(known), (
-        f"Violation count increased: {len(all_violations)} > baseline {len(known)}. "
-        "Fix violations or update baseline — KNOWN_VIOLATIONS can only shrink."
+        f"Violation count increased: {len(all_violations)} > baseline {len(known)}."
     )
 ```
 
