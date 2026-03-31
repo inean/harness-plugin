@@ -115,9 +115,10 @@ AI agents can only work with what they can see. Without structured documentation
    - Every error message MUST include remediation — error output IS agent context
 
 6. **Phase 5 — CI pipeline**
-   - `Read references/ci-templates.md` for starter YAML templates
+   - `Read references/ci-templates.md` for starter YAML templates and command validation rules
    - `Read references/stack-routing.md` for CI job matrix per stack
    - Adapt to stack — not every stack needs all 4 jobs (lint, typecheck, test, build)
+   - Validate discovered commands before embedding in CI — reject shell metacharacters, stop and ask if suspicious
 
 7. **Phase 6 — Garbage collection**
    - `Read references/gc-patterns.md` for scan types and migration strategy
