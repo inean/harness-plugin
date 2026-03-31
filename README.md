@@ -32,25 +32,36 @@ Transforms a repository into an agent-ready environment through 8 phases:
 
 ## Installation
 
-### Claude Code (with oh-my-claudecode)
+### Claude Code Plugin (recommended)
 
-```bash
-# Clone and copy to user-level skills (available across all projects)
-rm -rf /tmp/harness-init 2>/dev/null; git clone --depth 1 https://github.com/Gizele1/harness-init.git /tmp/harness-init
-mkdir -p ~/.claude/skills/omc-learned/harness-init/references
-cp /tmp/harness-init/SKILL.md ~/.claude/skills/omc-learned/harness-init/
-cp /tmp/harness-init/references/*.md ~/.claude/skills/omc-learned/harness-init/references/
-rm -rf /tmp/harness-init
+Add to your `~/.claude/settings.json`:
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "harness-init": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/Gizele1/harness-init.git"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "harness-init@harness-init": true
+  }
+}
 ```
 
-### Claude Code (native)
+Then restart Claude Code. The `/harness-init` command and skill will be available in all projects.
+
+### Claude Code (manual copy)
 
 ```bash
-# Clone and copy to project-level skills
+# Clone and copy skill + references to project-level skills
 rm -rf /tmp/harness-init 2>/dev/null; git clone --depth 1 https://github.com/Gizele1/harness-init.git /tmp/harness-init
 mkdir -p .claude/skills/harness-init/references
-cp /tmp/harness-init/SKILL.md .claude/skills/harness-init/
-cp /tmp/harness-init/references/*.md .claude/skills/harness-init/references/
+cp /tmp/harness-init/skills/harness-init/SKILL.md .claude/skills/harness-init/
+cp /tmp/harness-init/skills/harness-init/references/*.md .claude/skills/harness-init/references/
 rm -rf /tmp/harness-init
 ```
 
@@ -60,18 +71,18 @@ rm -rf /tmp/harness-init
 # Clone and copy to Codex skills directory
 rm -rf /tmp/harness-init 2>/dev/null; git clone --depth 1 https://github.com/Gizele1/harness-init.git /tmp/harness-init
 mkdir -p .agents/skills/harness-init/references
-cp /tmp/harness-init/SKILL.md .agents/skills/harness-init/
-cp /tmp/harness-init/references/*.md .agents/skills/harness-init/references/
+cp /tmp/harness-init/skills/harness-init/SKILL.md .agents/skills/harness-init/
+cp /tmp/harness-init/skills/harness-init/references/*.md .agents/skills/harness-init/references/
 rm -rf /tmp/harness-init
 ```
 
 ### Cursor
 
-Copy the content of `SKILL.md` and the `references/` directory into your `.cursor/rules/harness-init/` directory, or inline the reference content into `.cursorrules`.
+Copy `skills/harness-init/SKILL.md` and `skills/harness-init/references/` into your `.cursor/rules/harness-init/` directory, or inline the reference content into `.cursorrules`.
 
 ### Manual
 
-Just read `SKILL.md` and follow the phases manually in any AI coding assistant.
+Read `skills/harness-init/SKILL.md` and follow the phases manually in any AI coding assistant.
 
 ## Usage
 

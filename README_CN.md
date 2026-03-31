@@ -32,25 +32,36 @@
 
 ## 安装
 
-### Claude Code（配合 oh-my-claudecode）
+### Claude Code 插件（推荐）
 
-```bash
-# 克隆并复制到用户级 skills（跨所有项目可用）
-rm -rf /tmp/harness-init 2>/dev/null; git clone --depth 1 https://github.com/Gizele1/harness-init.git /tmp/harness-init
-mkdir -p ~/.claude/skills/omc-learned/harness-init/references
-cp /tmp/harness-init/SKILL.md ~/.claude/skills/omc-learned/harness-init/
-cp /tmp/harness-init/references/*.md ~/.claude/skills/omc-learned/harness-init/references/
-rm -rf /tmp/harness-init
+在 `~/.claude/settings.json` 中添加：
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "harness-init": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/Gizele1/harness-init.git"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "harness-init@harness-init": true
+  }
+}
 ```
 
-### Claude Code（原生）
+重启 Claude Code 后，`/harness-init` 命令和 skill 将在所有项目中可用。
+
+### Claude Code（手动复制）
 
 ```bash
-# 克隆并复制到项目级 skills
+# 克隆并复制 skill + references 到项目级 skills
 rm -rf /tmp/harness-init 2>/dev/null; git clone --depth 1 https://github.com/Gizele1/harness-init.git /tmp/harness-init
 mkdir -p .claude/skills/harness-init/references
-cp /tmp/harness-init/SKILL.md .claude/skills/harness-init/
-cp /tmp/harness-init/references/*.md .claude/skills/harness-init/references/
+cp /tmp/harness-init/skills/harness-init/SKILL.md .claude/skills/harness-init/
+cp /tmp/harness-init/skills/harness-init/references/*.md .claude/skills/harness-init/references/
 rm -rf /tmp/harness-init
 ```
 
@@ -60,18 +71,18 @@ rm -rf /tmp/harness-init
 # 克隆并复制到 Codex skills 目录
 rm -rf /tmp/harness-init 2>/dev/null; git clone --depth 1 https://github.com/Gizele1/harness-init.git /tmp/harness-init
 mkdir -p .agents/skills/harness-init/references
-cp /tmp/harness-init/SKILL.md .agents/skills/harness-init/
-cp /tmp/harness-init/references/*.md .agents/skills/harness-init/references/
+cp /tmp/harness-init/skills/harness-init/SKILL.md .agents/skills/harness-init/
+cp /tmp/harness-init/skills/harness-init/references/*.md .agents/skills/harness-init/references/
 rm -rf /tmp/harness-init
 ```
 
 ### Cursor
 
-将 `SKILL.md` 和 `references/` 目录复制到 `.cursor/rules/harness-init/` 目录中，或将参考内容内联到 `.cursorrules` 文件。
+将 `skills/harness-init/SKILL.md` 和 `skills/harness-init/references/` 目录复制到 `.cursor/rules/harness-init/` 目录中，或将参考内容内联到 `.cursorrules` 文件。
 
 ### 手动使用
 
-直接阅读 `SKILL.md`，在任何 AI 编码助手中按阶段执行即可。
+阅读 `skills/harness-init/SKILL.md`，在任何 AI 编码助手中按阶段执行即可。
 
 ## 使用
 
