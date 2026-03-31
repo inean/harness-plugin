@@ -35,30 +35,39 @@
 ### Claude Code（配合 oh-my-claudecode）
 
 ```bash
-mkdir -p ~/.claude/skills/omc-learned/harness-init
-curl -fsSL https://raw.githubusercontent.com/Gizele1/harness-init/main/SKILL.md \
-  -o ~/.claude/skills/omc-learned/harness-init/SKILL.md
+# 克隆并复制到用户级 skills（跨所有项目可用）
+git clone --depth 1 https://github.com/Gizele1/harness-init.git /tmp/harness-init
+mkdir -p ~/.claude/skills/omc-learned/harness-init/references
+cp /tmp/harness-init/SKILL.md ~/.claude/skills/omc-learned/harness-init/
+cp /tmp/harness-init/references/*.md ~/.claude/skills/omc-learned/harness-init/references/
+rm -rf /tmp/harness-init
 ```
 
 ### Claude Code（原生）
 
 ```bash
-mkdir -p .claude/skills/harness-init
-curl -fsSL https://raw.githubusercontent.com/Gizele1/harness-init/main/SKILL.md \
-  -o .claude/skills/harness-init/SKILL.md
+# 克隆并复制到项目级 skills
+git clone --depth 1 https://github.com/Gizele1/harness-init.git /tmp/harness-init
+mkdir -p .claude/skills/harness-init/references
+cp /tmp/harness-init/SKILL.md .claude/skills/harness-init/
+cp /tmp/harness-init/references/*.md .claude/skills/harness-init/references/
+rm -rf /tmp/harness-init
 ```
 
 ### OpenAI Codex
 
 ```bash
-mkdir -p .agents/skills/harness-init
-curl -fsSL https://raw.githubusercontent.com/Gizele1/harness-init/main/SKILL.md \
-  -o .agents/skills/harness-init/SKILL.md
+# 克隆并复制到 Codex skills 目录
+git clone --depth 1 https://github.com/Gizele1/harness-init.git /tmp/harness-init
+mkdir -p .agents/skills/harness-init/references
+cp /tmp/harness-init/SKILL.md .agents/skills/harness-init/
+cp /tmp/harness-init/references/*.md .agents/skills/harness-init/references/
+rm -rf /tmp/harness-init
 ```
 
 ### Cursor
 
-将 `SKILL.md` 内容复制到 `.cursor/rules/harness-init.md` 或 `.cursorrules` 文件中。
+将 `SKILL.md` 和 `references/` 目录复制到 `.cursor/rules/harness-init/` 目录中，或将参考内容内联到 `.cursorrules` 文件。
 
 ### 手动使用
 
