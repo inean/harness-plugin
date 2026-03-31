@@ -122,9 +122,11 @@ AI agents can only work with what they can see. Without structured documentation
    - Validate discovered commands before embedding in CI — reject shell metacharacters, stop and ask if suspicious
 
 7. **Phase 6 — Garbage collection**
-   - `Read references/gc-patterns.md` for scan types and migration strategy
+   - `Read references/gc-patterns.md` for scan types, safety rules, and migration strategy
+   - `Read references/stack-routing.md` Phase 6 table for per-stack GC tooling
+   - `Read references/ci-templates.md` GC Workflow section for `gc.yml` template
    - Prioritize entropy scans (doc drift, architecture violations) over style scans
-   - Single `gc` command + scheduled GitHub Action (weekly cron)
+   - Single `gc` command + scheduled GitHub Action (weekly cron, report-only)
 
 8. **Phase 7 — Pre-commit hooks** (optional)
    - `Read references/stack-routing.md` for framework and config per stack

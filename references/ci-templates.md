@@ -121,3 +121,40 @@ gc:
 
 ci: lint typecheck test build
 ~~~
+
+## GC Workflow (.github/workflows/gc.yml)
+
+~~~yaml
+name: Garbage Collection
+on:
+  schedule:
+    - cron: '0 9 * * 1'  # Monday 9am UTC
+  workflow_dispatch:       # Allow manual trigger
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  gc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: {setup-action}
+      - run: {install_command}
+      - run: {gc_command}
+      - name: Create issue on failure
+        if: failure()
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `GC scan found issues — ${new Date().toISOString().slice(0, 10)}`,
+              labels: ['garbage-collection'],
+              body: 'Weekly GC scan detected entropy. Run `{gc_command}` locally for details.'
+            });
+~~~
+
+**Notes:** GC workflow is report-only — never auto-fixes. The `workflow_dispatch` trigger allows manual runs. Create the `garbage-collection` label in your repo.
