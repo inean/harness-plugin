@@ -89,7 +89,7 @@ AI agents can only work with what they can see. Without structured documentation
    - Create: `ARCHITECTURE.md` at repo root (top-level domain map, ~30 lines, points to LAYERS.md)
    - Create: `docs/architecture/LAYERS.md` (definitive layer hierarchy + remediation guide)
    - Create: `docs/golden-principles/` — `Read references/golden-principles-guide.md` for how to write these
-   - Create: `docs/SECURITY.md` (auth flows, secrets management, threat model)
+   - Create: `docs/SECURITY.md` — `Read references/security-template.md` for template and exclusion rules
    Recommended:
    - Create: `docs/guides/` (setup, testing, deployment — only what's relevant)
    - Create: `docs/exec-plans/` — `Read references/exec-plan-template.md` for the standard (active/ + completed/ subdirs)
@@ -249,6 +249,7 @@ Detailed templates and guides are in `references/` — read on demand per phase:
 - `references/exec-plan-template.md` — ExecPlan (docs/exec-plans/) standard
 - `references/golden-principles-guide.md` — How to write golden principles
 - `references/gc-patterns.md` — GC scan types + migration strategy for existing repos
+- `references/security-template.md` — SECURITY.md template with exclusion rules
 - `references/tool-routing.md` — Platform-specific tool delegation mappings
 - `references/stack-routing.md` — Stack → tooling decision tables for Phases 3-7
 - `references/ci-templates.md` — Starter CI YAML for GitHub Actions, GitLab, Makefile
