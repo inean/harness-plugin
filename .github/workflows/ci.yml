@@ -16,9 +16,11 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name: Validate plugin.json
-        run: python3 -c "import json; json.load(open('.claude-plugin/plugin.json')); print('plugin.json: valid')"
+        run: |
+          python3 -c "import json; json.load(open('.claude-plugin/plugin.json')); print('plugin.json: valid')"
       - name: Validate marketplace.json
-        run: python3 -c "import json; json.load(open('.claude-plugin/marketplace.json')); print('marketplace.json: valid')"
+        run: |
+          python3 -c "import json; json.load(open('.claude-plugin/marketplace.json')); print('marketplace.json: valid')"
 
   check-docs:
     name: Doc consistency check
