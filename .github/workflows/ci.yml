@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate-json:
+    name: Validate JSON files
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate plugin.json
+        run: python3 -c "import json; json.load(open('.claude-plugin/plugin.json')); print('plugin.json: valid')"
+      - name: Validate marketplace.json
+        run: python3 -c "import json; json.load(open('.claude-plugin/marketplace.json')); print('marketplace.json: valid')"
+
+  check-docs:
+    name: Doc consistency check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run consistency checks
+        run: bash scripts/check-docs.sh
+
+  check-required-files:
+    name: Required files exist
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check required files
+        run: |
+          MISSING=0
+          for f in AGENTS.md ARCHITECTURE.md CLAUDE.md INSTALL.md README.md README_CN.md \
+                   .claude-plugin/plugin.json .claude-plugin/marketplace.json \
+                   skills/harness-init/SKILL.md; do
+            if [ ! -f "$f" ]; then
+              echo "MISSING: $f"
+              MISSING=$((MISSING + 1))
+            fi
+          done
+          if [ "$MISSING" -gt 0 ]; then
+            echo "$MISSING required file(s) missing"
+            exit 1
+          fi
+          echo "All required files present"
