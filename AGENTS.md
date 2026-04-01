@@ -1,68 +1,78 @@
-# harness-init
+# harness-init — Agent Orientation Map
 
-> Agent orientation map. Read this first when entering this repo.
+> Claude Code plugin that bootstraps agent-ready repo scaffolding based on OpenAI's harness engineering methodology.
 
-## What this is
+## Stack
 
-A Claude Code plugin that scaffolds agent-ready repos using OpenAI's harness engineering methodology. It produces `AGENTS.md`, `docs/`, boundary tests, linter rules, CI pipelines, and GC scripts for target repos through 8 phases (Phase 0-7).
+| Layer     | Tech              |
+|-----------|-------------------|
+| Language  | Markdown + JSON   |
+| Platform  | Claude Code Plugin|
+| License   | MIT               |
 
-## Directory structure
+## Architecture Layers
+
+Dependency flows **downward only**.
 
 ```
-.
-├── AGENTS.md                          # You are here
-├── ARCHITECTURE.md                    # Layer definitions and file relationships
-├── CLAUDE.md                          # Agent development instructions
-├── INSTALL.md                         # Machine-readable install instructions
-├── README.md                          # User-facing docs (English)
-├── README_CN.md                       # User-facing docs (Chinese) — must mirror README.md
-├── .claude-plugin/
-│   ├── marketplace.json               # Marketplace registration (required for plugin install)
-│   └── plugin.json                    # Plugin metadata (name, version, skills path)
-├── skills/
-│   └── harness-init/
-│       ├── SKILL.md                   # The skill itself — 8-phase execution logic
-│       └── references/                # Templates loaded on-demand by SKILL.md
-│           ├── agents-md-template.md
-│           ├── boundary-test-template.md
-│           ├── ci-templates.md
-│           ├── context-strategy.md
-│           ├── exec-plan-template.md
-│           ├── gc-patterns.md
-│           ├── golden-principles-guide.md
-│           ├── layer-templates.md
-│           ├── security-template.md
-│           ├── stack-routing.md
-│           └── tool-routing.md
-├── scripts/
-│   └── check-docs.sh                 # Doc consistency checker (CI + local)
-└── .github/workflows/
-    └── ci.yml                         # Plugin validation + doc consistency
+Root Docs (README.md, README_CN.md, INSTALL.md)
+    ↓
+Skill (skills/harness-init/SKILL.md)
+    ↓
+References (skills/harness-init/references/*.md)
+
+Commands (.claude/commands/harness-init.md) → Skill
+Plugin Config (.claude-plugin/) — standalone metadata
 ```
 
-## Key constraints
+See `docs/architecture/LAYERS.md` for full rules and enforcement.
 
-1. **README_CN.md must mirror README.md** — same sections, same order, same data. Update both or neither.
-2. **Reference files are loaded on-demand** — SKILL.md contains `Read references/*.md` directives. Every reference file must exist, and every `Read` directive must point to a real file.
-3. **Version must be consistent** — `plugin.json`, `marketplace.json`, and `SKILL.md` frontmatter all declare version. Keep them in sync.
-4. **SKILL.md is the source of truth** — README describes what the skill does; SKILL.md defines how it works. If they conflict, fix README.
+## Key Conventions
 
-## How to modify
+- Skill file (`SKILL.md`) must stay under ~250 lines — index, not encyclopedia
+- References are standalone templates — no cross-references between them
+- README.md and README_CN.md must stay in sync with SKILL.md capabilities
+- plugin.json `skills` path must point to valid `skills/` directory
+- See `docs/golden-principles/` for detailed DO/DON'T patterns
 
-- **Changing skill behavior**: Edit `skills/harness-init/SKILL.md`
-- **Changing templates**: Edit the relevant `skills/harness-init/references/*.md`
-- **Adding a reference file**: Add file, then add a `Read references/new-file.md` directive in SKILL.md
-- **Updating version**: Change in `plugin.json`, `marketplace.json`, and `SKILL.md` frontmatter
+## Commands
 
-## How to test
-
-```bash
-claude plugin validate .          # Validate plugin structure
-bash scripts/check-docs.sh        # Check doc consistency
+```sh
+bash scripts/gc/check-consistency.sh    # Run doc consistency checks
 ```
 
-## See also
+## Documentation Map
 
-- [ARCHITECTURE.md](ARCHITECTURE.md) — layer definitions
-- [CLAUDE.md](CLAUDE.md) — development instructions
-- [INSTALL.md](INSTALL.md) — installation methods
+```
+ARCHITECTURE.md                       Top-level domain map (root)
+docs/
+├── architecture/
+│   └── LAYERS.md                     Layer rules, dependency constraints
+├── golden-principles/
+│   ├── SKILL_AUTHORING.md            Skill file DO/DON'T patterns
+│   ├── DOCUMENTATION.md              Doc consistency patterns
+│   └── REFERENCES.md                 Reference template patterns
+└── SECURITY.md                       Secrets, exclusion rules
+```
+
+## Where to Look First
+
+| Task                        | Start here                              |
+|-----------------------------|-----------------------------------------|
+| Understand the project      | README.md or README_CN.md               |
+| Architecture overview       | ARCHITECTURE.md (root)                  |
+| Layer rules                 | docs/architecture/LAYERS.md             |
+| Modify the skill            | skills/harness-init/SKILL.md            |
+| Add/edit a reference        | skills/harness-init/references/         |
+| Plugin config               | .claude-plugin/plugin.json              |
+| Install instructions        | INSTALL.md                              |
+
+## Constraints (Machine-Readable)
+
+- MUST: All `Read references/*.md` paths in SKILL.md must resolve to existing files
+- MUST: plugin.json `skills` field must point to `./skills/`
+- MUST: README and README_CN feature lists must match SKILL.md phases
+- MUST NOT: References must not cross-reference each other
+- MUST NOT: SKILL.md must not exceed ~250 lines
+- PREFER: Keep AGENTS.md under 100 lines
+- VERIFY: `bash scripts/gc/check-consistency.sh` before PR
