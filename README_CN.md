@@ -32,7 +32,16 @@
 
 ## 安装
 
-### Claude Code 插件（推荐）
+### Claude Code CLI（推荐）
+
+```bash
+claude plugin marketplace add https://github.com/Gizele1/harness-init.git
+claude plugin install harness-init@harness-init
+```
+
+重启 Claude Code 后，`/harness-init` 命令和 skill 将在所有项目中可用。
+
+### Claude Code settings.json（备选）
 
 在 `~/.claude/settings.json` 中添加：
 
@@ -52,7 +61,7 @@
 }
 ```
 
-重启 Claude Code 后，`/harness-init` 命令和 skill 将在所有项目中可用。
+重启 Claude Code。
 
 ### Claude Code（手动复制）
 

@@ -32,7 +32,16 @@ Transforms a repository into an agent-ready environment through 8 phases:
 
 ## Installation
 
-### Claude Code Plugin (recommended)
+### Claude Code CLI (recommended)
+
+```bash
+claude plugin marketplace add https://github.com/Gizele1/harness-init.git
+claude plugin install harness-init@harness-init
+```
+
+Restart Claude Code. The `/harness-init` command and skill will be available in all projects.
+
+### Claude Code settings.json (alternative)
 
 Add to your `~/.claude/settings.json`:
 
@@ -52,7 +61,7 @@ Add to your `~/.claude/settings.json`:
 }
 ```
 
-Then restart Claude Code. The `/harness-init` command and skill will be available in all projects.
+Then restart Claude Code.
 
 ### Claude Code (manual copy)
 
