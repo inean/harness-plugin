@@ -21,20 +21,33 @@ jobs:
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
           script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const labelName = 'garbage-collection';
+
+            // Ensure the label exists
+            try {
+              await github.rest.issues.getLabel({ owner, repo, name: labelName });
+            } catch (e) {
+              if (e.status === 404) {
+                await github.rest.issues.createLabel({ owner, repo, name: labelName, color: 'e3dced', description: 'Weekly GC scan issues' });
+              } else {
+                throw e;
+              }
+            }
+
             const title = `GC scan found issues — ${new Date().toISOString().slice(0, 10)}`;
             const { data: existing } = await github.rest.issues.listForRepo({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              labels: 'garbage-collection',
+              owner, repo,
+              labels: labelName,
               state: 'open',
             });
             if (existing.some(i => i.title === title)) {
               return;
             }
             await github.rest.issues.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
+              owner, repo,
               title,
-              labels: ['garbage-collection'],
+              labels: [labelName],
               body: 'Weekly GC scan detected entropy. Run `bash scripts/gc/check-consistency.sh` locally for details.'
             });

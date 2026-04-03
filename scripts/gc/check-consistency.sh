@@ -30,19 +30,25 @@ echo ""
 echo "Check 1: SKILL.md reference paths"
 if [ -f "$SKILL_FILE" ]; then
   # Extract all `Read references/...` or `references/...md` paths from SKILL.md
-  refs=$(grep -oP 'references/[a-zA-Z0-9_-]+\.md' "$SKILL_FILE" | sort -u)
-  for ref in $refs; do
-    full_path="$REPO_ROOT/skills/harness-init/$ref"
-    if [ ! -f "$full_path" ]; then
-      echo "  FAIL: SKILL.md references '$ref' but file does not exist"
-      echo "  FIX:  Create '$full_path' or remove the reference from SKILL.md"
-      errors=$((errors + 1))
+  refs=$(grep -oP 'references/[a-zA-Z0-9_-]+\.md' "$SKILL_FILE" | sort -u || true)
+  check1_errors=0
+  if [ -n "$refs" ]; then
+    for ref in $refs; do
+      full_path="$REPO_ROOT/skills/harness-init/$ref"
+      if [ ! -f "$full_path" ]; then
+        echo "  FAIL: SKILL.md references '$ref' but file does not exist"
+        echo "  FIX:  Create '$full_path' or remove the reference from SKILL.md"
+        check1_errors=$((check1_errors + 1))
+      fi
+    done
+    if [ $check1_errors -eq 0 ]; then
+      ref_count=$(echo "$refs" | wc -l)
+      echo "  OK: All $ref_count referenced files exist"
     fi
-  done
-  if [ $errors -eq 0 ]; then
-    ref_count=$(echo "$refs" | wc -l)
-    echo "  OK: All $ref_count referenced files exist"
+  else
+    echo "  WARN: No reference paths found in SKILL.md"
   fi
+  errors=$((errors + check1_errors))
 else
   echo "  FAIL: SKILL.md not found at $SKILL_FILE"
   errors=$((errors + 1))
@@ -151,7 +157,8 @@ if [ -d "$REFS_DIR" ]; then
   done
   if [ $cross_refs -eq 0 ]; then
     ref_file_count=$(ls -1 "$REFS_DIR"/*.md 2>/dev/null | wc -l)
-    echo "  OK: All $ref_file_count reference files are independent (3 known exceptions skipped)"
+    exc_count=$(echo $CROSS_REF_EXCEPTIONS | wc -w)
+    echo "  OK: All $ref_file_count reference files are independent ($exc_count known exceptions skipped)"
   fi
   errors=$((errors + cross_refs))
 else
