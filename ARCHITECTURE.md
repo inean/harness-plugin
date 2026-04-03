@@ -7,7 +7,6 @@ harness-init is a pure documentation project structured as a Claude Code plugin.
 ```
 harness-init/
 ├── .claude-plugin/          Plugin metadata (plugin.json, marketplace.json)
-├── .claude/commands/        Slash command entry point
 ├── skills/harness-init/     Skill definition + reference templates
 ├── docs/                    Project documentation
 │   ├── architecture/        Layer rules and dependency constraints
