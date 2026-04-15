@@ -13,7 +13,7 @@ Entropy management — recurring scans that catch drift, not just style violatio
 ## Two Categories
 
 ### Style Scans (basic, noisy)
-- Raw console/print statements (should use logger)
+- Raw console or print statements (should use logger)
 - Default exports (JS/TS — should use named)
 - Large files (>300 lines warn, >500 error)
 - TODO/FIXME/HACK comments
@@ -23,7 +23,7 @@ Entropy management — recurring scans that catch drift, not just style violatio
 ### Entropy Scans (high-value, what OpenAI actually cares about)
 - **Doc-code drift:** Do docs/ descriptions match current code behavior?
 - **Architecture violations:** New imports that violate LAYERS.md?
-- **Pattern deviation:** Code that doesn't match golden-principles/?
+- **Pattern deviation:** Code that does not match golden-principles/?
 - **Dependency audit:** Circular or unnecessary dependencies?
 - **Knowledge freshness:** Are docs older than N days while src/ changed?
 - **Knowledge ownership:** Do critical docs name an owner, source, or update cadence?
@@ -32,8 +32,29 @@ Entropy management — recurring scans that catch drift, not just style violatio
 - **Deprecation drift:** Do redirected files still explain the new canonical location?
 - **Quality score freshness:** Has `QUALITY_SCORE.md` gone stale relative to code churn?
 - **Quality ratchet:** Has KNOWN_VIOLATIONS grown?
+- **Product-sense drift:** Has the product behavior changed without `PRODUCT_SENSE.md` or equivalent being refreshed?
+- **Migration-map drift:** Do files marked `move`, `merge`, `bridge`, or `deprecate` still match filesystem reality?
+- **Capability-pack drift:** Do `OBSERVABILITY.md` and `RUNTIME_VALIDATION.md` still match the commands, dashboards, and artifacts they describe?
 
 **Prioritize entropy scans over style scans.** Style is linter territory.
+
+## Concrete Knowledge-Base Checks
+
+At minimum, the GC story should verify:
+
+- `AGENTS.md` links still resolve to the current system-of-record files.
+- `docs/design-docs/index.md` lists design docs and includes a verification status for each tracked design.
+- `docs/QUALITY_SCORE.md` includes a review cadence and a last-reviewed signal that has not gone stale.
+- `docs/PRODUCT_SENSE.md` or the chosen equivalent exists for repos with product behavior.
+- Capability-pack docs expose `Status: live|scaffolded|deferred`.
+- Deprecated files, when retained, still point to the canonical replacement.
+
+Useful metadata fields for critical docs:
+- `Owner:`
+- `Last reviewed:`
+- `Status:`
+- `Verification status:`
+- `Freshness cadence:`
 
 ## GC Runner
 
@@ -44,13 +65,13 @@ python scripts/gc_run_all.py  # or
 make gc
 ```
 
-Each script: scan → find violation → report file:line → exit 0/1.
+Each script: scan -> find violation -> report file:line -> exit 0/1.
 
 Recommended subcommands:
 - `gc:architecture` — boundary drift and forbidden edges
-- `gc:knowledge-base` — freshness, cross-links, ownership, verification status
+- `gc:knowledge-base` — freshness, cross-links, ownership, verification status, migration-map drift
 - `gc:quality-score` — update or verify quality score freshness
-- `gc:pack:{name}` — optional checks for evals, observability, merge policy, or review loops
+- `gc:pack:{name}` — optional checks for evals, observability, runtime validation, merge policy, or review loops
 
 ## Scheduled Execution
 
@@ -60,7 +81,7 @@ Results posted as GitHub issue with label `garbage-collection`.
 ## Migration Strategy for Existing Repos
 
 1. **Establish baseline:** Run all scans, record current count
-2. **Warn-only phase:** New violations warn, don't fail CI
+2. **Warn-only phase:** New violations warn, do not fail CI
 3. **Ratchet phase:** Lock baseline count, fail on increase
 4. **Convergence:** Gradually reduce baseline via targeted cleanup PRs
 
@@ -71,12 +92,24 @@ Quality scoring should be explicit, not magical:
 1. Define the scoring dimensions in `docs/QUALITY_SCORE.md` (domain, layer, gap, owner, last reviewed).
 2. Decide whether updates are:
    - **Manual-but-enforced** — CI fails if the score has not been reviewed within the agreed cadence.
-   - **Script-assisted** — a script proposes grade deltas or stale sections, then humans/agents review the diff.
+   - **Script-assisted** — a script proposes grade deltas or stale sections, then humans or agents review the diff.
 3. Scheduled GC runs should verify freshness, not silently rewrite scores.
 4. If a background agent updates scores, make it open a focused PR or issue instead of mutating the branch in place.
 
 ## Capability Pack Guidance
 
-- Runtime legibility, observability, review loops, merge policy, and eval packs should each add their own read-only GC checks.
+- Runtime/UI validation, observability, review loops, merge policy, and eval packs should each add their own read-only GC checks.
 - If the pack is only scaffolded, the GC check should verify docs/contracts/commands exist and clearly mark unimplemented pieces.
 - Do not fail CI on pack-specific runtime checks until the repository has real commands and stable infrastructure for them.
+
+### Runtime/UI validation checks
+- Start, restart, and smoke commands still exist
+- Snapshot or artifact directories are documented
+- Replayable journeys or workload definitions still resolve
+- Failure triage docs still point to the current log, metric, and trace surfaces
+
+### Observability checks
+- Signal naming tables still match exported metrics, traces, and logs
+- Dashboard indexes still point to real assets
+- Validation commands still resolve
+- Keep, bridge, or staged-migration decisions still describe current reality

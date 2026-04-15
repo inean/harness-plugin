@@ -8,14 +8,18 @@ REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 PLUGIN_ROOT="$REPO_ROOT/plugins/harness-plugin"
 SKILL_FILE="$PLUGIN_ROOT/skills/harness-plugin/SKILL.md"
 REFS_DIR="$PLUGIN_ROOT/skills/harness-plugin/references"
-PLUGIN_JSON="$PLUGIN_ROOT/.codex-plugin/plugin.json"
-MARKETPLACE_JSON="$REPO_ROOT/.agents/plugins/marketplace.json"
+CODEX_PLUGIN_JSON="$PLUGIN_ROOT/.codex-plugin/plugin.json"
+CLAUDE_PLUGIN_JSON="$PLUGIN_ROOT/.claude-plugin/plugin.json"
+CODEX_MARKETPLACE_JSON="$REPO_ROOT/.agents/plugins/marketplace.json"
+CLAUDE_MARKETPLACE_JSON="$REPO_ROOT/.claude-plugin/marketplace.json"
 README="$REPO_ROOT/README.md"
-LAYERS_DOC="$REPO_ROOT/docs/architecture/LAYERS.md"
+INSTALL="$REPO_ROOT/INSTALL.md"
 GC_REF="$REFS_DIR/gc-patterns.md"
 MIGRATION_REF="$REFS_DIR/migration-playbook.md"
 PACKS_REF="$REFS_DIR/capability-packs.md"
-TOOL_ROUTING="$REFS_DIR/tool-routing.md"
+OBS_REF="$REFS_DIR/observability-migration.md"
+RUNTIME_REF="$REFS_DIR/runtime-validation-workflow.md"
+CONTEXT_REF="$REFS_DIR/context-strategy.md"
 errors=0
 
 fail() {
@@ -53,46 +57,55 @@ else
 fi
 echo ""
 
-echo "Check 2: Codex plugin manifests"
-if python3 -m json.tool "$PLUGIN_JSON" >/dev/null 2>&1; then
-  ok "plugin.json is valid JSON"
-else
-  fail "plugin.json is not valid JSON"
-fi
+echo "Check 2: Plugin manifests"
+for jf in "$CODEX_PLUGIN_JSON" "$CLAUDE_PLUGIN_JSON" "$CODEX_MARKETPLACE_JSON" "$CLAUDE_MARKETPLACE_JSON"; do
+  if python3 -m json.tool "$jf" >/dev/null 2>&1; then
+    ok "$(basename "$jf") is valid JSON"
+  else
+    fail "$(basename "$jf") is not valid JSON"
+  fi
+done
 
-if python3 -m json.tool "$MARKETPLACE_JSON" >/dev/null 2>&1; then
-  ok "marketplace.json is valid JSON"
-else
-  fail "marketplace.json is not valid JSON"
-fi
-
-if grep -q '\[TODO:' "$PLUGIN_JSON" "$MARKETPLACE_JSON"; then
-  fail "plugin or marketplace manifest still contains TODO placeholders"
-else
-  ok "plugin and marketplace manifests have no TODO placeholders"
-fi
-
-if PLUGIN_JSON="$PLUGIN_JSON" MARKETPLACE_JSON="$MARKETPLACE_JSON" python3 - <<'PY'
+if CODEX_PLUGIN_JSON="$CODEX_PLUGIN_JSON" CLAUDE_PLUGIN_JSON="$CLAUDE_PLUGIN_JSON" CODEX_MARKETPLACE_JSON="$CODEX_MARKETPLACE_JSON" CLAUDE_MARKETPLACE_JSON="$CLAUDE_MARKETPLACE_JSON" python3 - <<'PY'
 import json
 import os
 from pathlib import Path
 
-plugin = json.loads(Path(os.environ["PLUGIN_JSON"]).read_text())
-marketplace = json.loads(Path(os.environ["MARKETPLACE_JSON"]).read_text())
+codex_plugin = json.loads(Path(os.environ["CODEX_PLUGIN_JSON"]).read_text())
+claude_plugin = json.loads(Path(os.environ["CLAUDE_PLUGIN_JSON"]).read_text())
+codex_marketplace = json.loads(Path(os.environ["CODEX_MARKETPLACE_JSON"]).read_text())
+claude_marketplace = json.loads(Path(os.environ["CLAUDE_MARKETPLACE_JSON"]).read_text())
 
-assert plugin["name"] == "harness-plugin"
-assert plugin["version"] == "0.1.0"
-assert plugin["skills"] == "./skills/"
+assert codex_plugin["name"] == "harness-plugin"
+assert claude_plugin["name"] == "harness-plugin"
+assert codex_plugin["version"] == "0.1.0"
+assert claude_plugin["version"] == "0.1.0"
+assert codex_plugin["skills"] == "./skills/"
 assert any(
     entry.get("name") == "harness-plugin"
     and entry.get("source", {}).get("path") == "./plugins/harness-plugin"
-    for entry in marketplace.get("plugins", [])
+    for entry in codex_marketplace.get("plugins", [])
+)
+assert any(
+    entry.get("name") == "harness-plugin"
+    and entry.get("source") == "./plugins/harness-plugin"
+    for entry in claude_marketplace.get("plugins", [])
 )
 PY
 then
-  ok "plugin manifest and marketplace entry match the shipped bundle"
+  ok "plugin manifests and marketplace entries match the shipped bundle"
 else
-  fail "plugin manifest or marketplace entry drifted"
+  fail "plugin manifests or marketplace entries drifted"
+fi
+
+if command -v claude >/dev/null 2>&1; then
+  if claude plugin validate "$REPO_ROOT" >/dev/null 2>&1; then
+    ok "claude plugin validate succeeds for the repo root"
+  else
+    fail "claude plugin validate failed for the repo root"
+  fi
+else
+  ok "Claude CLI unavailable; skipped claude plugin validate"
 fi
 echo ""
 
@@ -104,7 +117,7 @@ else
 fi
 
 if [ -e "$REPO_ROOT/README_CN.md" ]; then
-  fail "README_CN.md should not exist after removing duplicate language surfaces"
+  fail "README_CN.md should not exist in the English-only repo"
 else
   ok "README_CN.md is removed"
 fi
@@ -143,22 +156,30 @@ echo ""
 
 echo "Check 5: Source-of-truth coverage"
 for pair in \
-  "$SKILL_FILE|migration map" \
-  "$SKILL_FILE|PRODUCT_SENSE.md" \
-  "$SKILL_FILE|verification status" \
-  "$SKILL_FILE|QUALITY_SCORE.md" \
-  "$SKILL_FILE|EVALS.md" \
-  "$SKILL_FILE|MERGE_POLICY.md" \
-  "$SKILL_FILE|OBSERVABILITY.md" \
-  "$SKILL_FILE|REVIEW_LOOPS.md" \
-  "$README|Codex Plugin Layout" \
+  "$SKILL_FILE|Migration mode" \
+  "$SKILL_FILE|bridge" \
+  "$SKILL_FILE|Providers" \
+  "$SKILL_FILE|OTLP" \
+  "$SKILL_FILE|Runtime/UI validation" \
   "$README|Capability Packs" \
-  "$MIGRATION_REF|keep" \
-  "$MIGRATION_REF|deprecate" \
-  "$PACKS_REF|Runtime legibility" \
-  "$PACKS_REF|Evaluation harnesses" \
-  "$GC_REF|Knowledge freshness" \
-  "$GC_REF|Quality Score Update Workflow"; do
+  "$README|Migration mode" \
+  "$README|bridge" \
+  "$README|Providers" \
+  "$README|Victoria Logs" \
+  "$README|PRODUCT_SENSE.md" \
+  "$INSTALL|claude plugin validate ." \
+  "$MIGRATION_REF|Structured Inventory Scope" \
+  "$MIGRATION_REF|bridge" \
+  "$PACKS_REF|Runtime/UI validation" \
+  "$PACKS_REF|Full observability stack for agents" \
+  "$OBS_REF|LogQL" \
+  "$OBS_REF|PromQL" \
+  "$OBS_REF|TraceQL" \
+  "$RUNTIME_REF|before and after" \
+  "$RUNTIME_REF|Failure Triage" \
+  "$GC_REF|Product-sense drift" \
+  "$GC_REF|Capability-pack drift" \
+  "$CONTEXT_REF|Observability bridge status"; do
   file="${pair%%|*}"
   pattern="${pair#*|}"
   if grep -q "$pattern" "$file"; then
@@ -169,32 +190,22 @@ for pair in \
 done
 echo ""
 
-echo "Check 6: Codex-only repo surface"
-if [ -e "$REPO_ROOT/CLAUDE.md" ] || [ -d "$REPO_ROOT/.claude-plugin" ]; then
-  fail "Claude-era repo artifacts still exist"
-else
-  ok "Claude-era repo artifacts are removed"
-fi
-
-if grep -q 'README_CN' "$REPO_ROOT/AGENTS.md" "$REPO_ROOT/ARCHITECTURE.md" "$REPO_ROOT/docs/architecture/LAYERS.md" "$REPO_ROOT/docs/golden-principles/DOCUMENTATION.md"; then
-  fail "README_CN references still exist in repo docs"
-else
-  ok "README_CN references are removed from repo docs"
-fi
-
-for file in "$README" "$REPO_ROOT/INSTALL.md" "$REPO_ROOT/AGENTS.md" "$REPO_ROOT/ARCHITECTURE.md" "$REPO_ROOT/docs/SECURITY.md" "$TOOL_ROUTING"; do
-  if grep -Eq 'Claude|Cursor|\.claude-plugin|claude plugin' "$file"; then
-    fail "$(basename "$file") still mentions an unsupported host"
+echo "Check 6: English-only and manifest surfaces"
+for file in "$REPO_ROOT/AGENTS.md" "$REPO_ROOT/ARCHITECTURE.md" "$REPO_ROOT/docs/architecture/LAYERS.md" "$REPO_ROOT/docs/golden-principles/DOCUMENTATION.md" "$README" "$INSTALL"; do
+  if grep -q 'README_CN' "$file"; then
+    fail "$(basename "$file") still references README_CN"
   else
-    ok "$(basename "$file") stays Codex-only"
+    ok "$(basename "$file") stays English-only"
   fi
 done
 
-if grep -q 'CLAUDE.md' "$LAYERS_DOC"; then
-  fail "docs/architecture/LAYERS.md still references CLAUDE.md"
-else
-  ok "docs/architecture/LAYERS.md no longer references CLAUDE.md"
-fi
+for file in "$REPO_ROOT/AGENTS.md" "$REPO_ROOT/ARCHITECTURE.md" "$REPO_ROOT/docs/architecture/LAYERS.md"; do
+  if grep -Eq '\.agents/plugins/marketplace\.json' "$file" && grep -Eq '\.claude-plugin/marketplace\.json' "$file"; then
+    ok "$(basename "$file") documents both marketplace surfaces"
+  else
+    fail "$(basename "$file") is missing one of the marketplace surfaces"
+  fi
+done
 echo ""
 
 echo "=== Summary ==="

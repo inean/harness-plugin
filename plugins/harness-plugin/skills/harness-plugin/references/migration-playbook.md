@@ -1,26 +1,29 @@
 # Migration Playbook
 
-Use this reference whenever the repository already has meaningful docs, CI, tests, or conventions.
+Use this reference whenever the repository already has meaningful docs, CI, tests, telemetry, or conventions.
 
-## Bootstrap vs Migrate
+## Required Operating Modes
 
-Choose **Bootstrap** only when the repo is empty or has trivial scaffolding.
+- **Bootstrap mode** creates the harness from minimal starting material.
+- **Migration mode** inventories the repo, classifies existing artifacts, writes a migration map, and only then makes broad structural edits.
 
-Choose **Migrate** when any of these already exist:
-- `AGENTS.md`, other onboarding docs, or substantial README docs
-- `docs/`, ADRs, plans, or runbooks
-- CI workflows, lint configs, test harnesses, or generated schemas
-- observability config, dashboards, deployment scripts, or repo-specific conventions
+If the repo already has meaningful docs, CI, architecture rules, telemetry, or operational scripts, use **Migration mode**.
 
-## Inventory Scope
+## Structured Inventory Scope
 
-Inventory these artifact families in Phase 0:
-- orientation docs (`AGENTS.md`, `README*`, and any legacy onboarding docs)
-- knowledge base (`docs/`, ADRs, plans, runbooks, security docs, product docs)
-- generated artifacts (schemas, API specs, dashboards, scorecards)
-- enforcement (`CI`, lint config, pre-commit hooks, boundary tests)
-- runtime support (dev scripts, smoke tests, observability config, dashboards)
-- conventions (naming, package layout, layering, ownership, release flow)
+In Migration mode, Phase 0 MUST inspect and classify these artifact families before major edits:
+
+| Family | What to inspect |
+|--------|------------------|
+| Orientation | `AGENTS.md`, `CLAUDE.md`, `README*`, onboarding docs |
+| Knowledge base | `docs/`, ADRs, design docs, plans, runbooks |
+| Security | threat models, auth docs, secret-handling docs, compliance notes |
+| Product context | specs, roadmap docs, user journeys, research summaries |
+| Generated artifacts | API specs, db schemas, client SDK docs, generated markdown |
+| Enforcement | CI workflows, lint config, tests, architecture checks, pre-commit hooks |
+| Runtime support | app startup scripts, dev shells, smoke tests, local environment scripts |
+| Observability | telemetry SDK config, OTLP exporters, collectors, dashboards, logging pipelines |
+| Conventions | folder taxonomy, naming rules, ownership rules, release flow, repo-specific patterns |
 
 ## Classification Vocabulary
 
@@ -32,8 +35,21 @@ Every discovered artifact must receive exactly one primary classification:
 | `move` | Useful as-is but stored in the wrong place | Relocate with `git mv` |
 | `merge` | Useful, but overlaps with a new or better target artifact | Fold content into the canonical destination, then retire or stub the old file |
 | `generate` | Missing artifact the harness needs | Create a new file or directory |
+| `bridge` | Keep the current implementation, but wrap or document how it connects to the proposal architecture | Add adapters, contracts, docs, or staged migration notes |
 | `deprecate` | Old artifact still needs a redirect path for humans or tooling | Replace with a short stub pointing to the new source of truth |
 | `ignore` | Out of scope, obsolete, or intentionally left alone | Do not edit, but note why |
+
+Use `bridge` for legacy observability stacks, partially compatible docs, or existing runtime tooling that should remain live while the repo converges on the harness structure.
+
+## Decision Rules
+
+- Use `keep` when the artifact already serves as a trustworthy system-of-record surface.
+- Use `move` when the content is good and the problem is location or naming.
+- Use `merge` when the artifact has useful knowledge but should no longer be canonical on its own.
+- Use `generate` when the harness needs a new artifact that simply does not exist.
+- Use `bridge` when the current implementation should stay live while the harness adds explicit contracts, docs, adapters, or staged convergence steps.
+- Use `deprecate` when an old path must survive temporarily to preserve links, scripts, or contributor habits.
+- Use `ignore` only when the artifact is intentionally out of scope or dead.
 
 ## Migration Rules
 
@@ -43,6 +59,8 @@ Every discovered artifact must receive exactly one primary classification:
 4. Keep generated artifacts if they are still authoritative; otherwise regenerate them into the new location and note the source command.
 5. Baseline legacy violations instead of turning on hard-fail enforcement immediately.
 6. Keep the migration map updated as classifications change.
+7. Never overwrite useful current docs without first merging or explicitly deprecating them.
+8. If the repo already has observability or runtime validation tooling, classify it first. Do not replace it blindly.
 
 ## Required Migration Map
 
@@ -60,21 +78,24 @@ Why the repo is being migrated and which harness capabilities are in scope.
 
 ## Artifact Inventory
 
-| Current artifact | Classification | Destination | History strategy | Notes |
-|------------------|----------------|-------------|------------------|-------|
-| README.md | merge | docs/PRODUCT_SENSE.md + README.md | edit in place | Split product details out of the README |
-| docs/adr/ | move | docs/design-docs/ | git mv | Keep numbering stable |
-| .github/workflows/legacy.yml | keep | .github/workflows/legacy.yml | none | Still required for deployment |
-| dashboards/app.json | keep | dashboards/app.json | none | Canonical source already exists |
+| Current artifact | Family | Classification | Destination | History strategy | Baseline / bridge notes | Notes |
+|------------------|--------|----------------|-------------|------------------|-------------------------|-------|
+| README.md | Orientation | merge | docs/PRODUCT_SENSE.md + README.md | edit in place | n/a | Split product details out of the README |
+| docs/adr/ | Knowledge base | move | docs/design-docs/ | git mv | n/a | Keep numbering stable |
+| .github/workflows/legacy.yml | Enforcement | keep | .github/workflows/legacy.yml | none | n/a | Still required for deployment |
+| dashboards/app.json | Observability | bridge | dashboards/app.json + docs/OBSERVABILITY.md | none | Keep live; document datasource mapping | Canonical dashboard already exists |
 
 ## Baselines
 - Existing architecture violations:
 - Existing lint debt:
 - Existing flaky tests:
+- Existing doc freshness gaps:
+- Existing verification-status gaps:
 
 ## Risk Notes
 - Which changes are safe now
 - Which changes need follow-up PRs
+- Which current tooling stays live through a bridge instead of immediate replacement
 
 ## Completion Criteria
 - What “migrated enough” means for this repo

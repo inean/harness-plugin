@@ -1,7 +1,7 @@
 {
   "name": "harness-plugin",
   "version": "0.1.0",
-  "description": "Bootstrap or migrate repositories into a Codex-ready harness with migration maps, knowledge-base docs, boundary checks, and GC guidance",
+  "description": "Bootstrap or migrate repositories into an agent-first harness proposal with migration maps, layered architecture docs, and optional runtime and observability capability packs",
   "author": {
     "name": "Gizele1",
     "email": "opensource@gizele.dev",
@@ -14,14 +14,17 @@
     "codex",
     "plugin",
     "harness-engineering",
+    "harness-init",
     "migration",
+    "observability",
+    "runtime-validation",
     "agent-ready"
   ],
   "skills": "./skills/",
   "interface": {
     "displayName": "Harness Plugin",
-    "shortDescription": "Bootstrap or migrate a repository into a Codex-ready harness.",
-    "longDescription": "Scaffold a Codex plugin that creates migration maps, knowledge-base docs, architecture checks, and optional capability packs for agent-first repository work.",
+    "shortDescription": "Bootstrap or migrate a repository into an agent-first harness proposal.",
+    "longDescription": "Scaffold a harness proposal with migration maps, layered architecture docs, Provider guidance, knowledge-base maintenance, and optional runtime/UI validation and observability capability packs.",
     "developerName": "Gizele1",
     "category": "Productivity",
     "capabilities": [
@@ -32,9 +35,9 @@
     "privacyPolicyURL": "https://github.com/Gizele1/harness-plugin",
     "termsOfServiceURL": "https://github.com/Gizele1/harness-plugin",
     "defaultPrompt": [
-      "Bootstrap this repo into the harness-plugin architecture.",
-      "Migrate this existing repo into the harness-plugin layout safely.",
-      "Add eval and observability packs to this harness."
+      "Use harness-plugin in bootstrap mode for this new repo.",
+      "Use harness-init style migration mode for this existing repo.",
+      "Add runtime/UI validation and observability packs, but preserve current telemetry where possible."
     ],
     "brandColor": "#0F766E",
     "composerIcon": "./assets/icon.png",

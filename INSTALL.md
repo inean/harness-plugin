@@ -1,21 +1,25 @@
 # Installation Guide
 
-Machine-readable installation instructions for the Codex plugin bundle shipped in this repo.
+Machine-readable installation and validation instructions for the harness-plugin bundle shipped in this repo.
 
-## Supported Mode
+## Supported Surfaces
 
-Only Codex is supported. The repo-local plugin bundle lives at:
+This repo ships two mirrored manifest surfaces around the same bundle:
 
-- `plugins/harness-plugin/`
-- `.agents/plugins/marketplace.json`
+- Codex manifests:
+  - `.agents/plugins/marketplace.json`
+  - `plugins/harness-plugin/.codex-plugin/plugin.json`
+- Claude-compatible validation manifests:
+  - `.claude-plugin/marketplace.json`
+  - `plugins/harness-plugin/.claude-plugin/plugin.json`
 
-Non-Codex packaging is intentionally unsupported.
+The installable bundle still lives at `plugins/harness-plugin/`.
 
 ## Repo-Local Install
 
-The repo already contains the supported Codex plugin layout. Clone the repo and keep the marketplace file at `.agents/plugins/marketplace.json` so it points to `./plugins/harness-plugin`.
+The repo already contains the supported local bundle layout. Clone the repo and keep the Codex marketplace file at `.agents/plugins/marketplace.json` so it points to `./plugins/harness-plugin`.
 
-## Home-Local Install
+## Home-Local Codex Install
 
 Copy the plugin bundle to your home plugin directory and seed or update a home marketplace entry:
 
@@ -54,16 +58,28 @@ marketplace_path.write_text(json.dumps(data, indent=2) + "\n")
 PY
 ```
 
+## Compatibility Validation
+
+The mirrored `.claude-plugin/` manifests exist so common plugin validators can inspect the same local bundle:
+
+```bash
+claude plugin validate .
+claude plugin validate plugins/harness-plugin
+```
+
 ## Verification
 
-After installation, verify the bundle is present and valid:
+After installation or updates, verify the bundle is present and consistent:
 
 ```bash
 python3 -m json.tool plugins/harness-plugin/.codex-plugin/plugin.json > /dev/null
+python3 -m json.tool plugins/harness-plugin/.claude-plugin/plugin.json > /dev/null
 python3 -m json.tool .agents/plugins/marketplace.json > /dev/null
+python3 -m json.tool .claude-plugin/marketplace.json > /dev/null
+claude plugin validate .
 ls -la plugins/harness-plugin/skills/harness-plugin/SKILL.md
 ls plugins/harness-plugin/skills/harness-plugin/references/*.md | wc -l
-# Expected: 13 reference files
+# Expected: 15 reference files
 ```
 
 ## Uninstall
@@ -73,9 +89,10 @@ ls plugins/harness-plugin/skills/harness-plugin/references/*.md | wc -l
 ```bash
 rm -rf plugins/harness-plugin
 rm -rf .agents/plugins/marketplace.json
+rm -rf .claude-plugin/marketplace.json
 ```
 
-### Home-local uninstall
+### Home-local Codex uninstall
 
 ```bash
 rm -rf ~/plugins/harness-plugin
@@ -93,7 +110,8 @@ PY
 
 ## Requirements
 
-- **OpenAI Codex** with local plugin discovery
+- **OpenAI Codex** with local plugin discovery for the Codex install path
+- **Claude Code CLI** only if you want to run `claude plugin validate`
 - **Git** for clone-based installs or updates
 - **No runtime dependencies** inside this repo; the bundle is docs, templates, assets, and validation guidance
 
@@ -103,8 +121,10 @@ PY
 |-------|-------|
 | Name | harness-plugin |
 | Version | 0.1.0 |
-| Host | OpenAI Codex |
-| Plugin manifest | `plugins/harness-plugin/.codex-plugin/plugin.json` |
-| Marketplace | `.agents/plugins/marketplace.json` |
+| Bundle root | `plugins/harness-plugin/` |
+| Codex manifest | `plugins/harness-plugin/.codex-plugin/plugin.json` |
+| Claude-compatible manifest | `plugins/harness-plugin/.claude-plugin/plugin.json` |
+| Codex marketplace | `.agents/plugins/marketplace.json` |
+| Claude-compatible marketplace | `.claude-plugin/marketplace.json` |
 | Skill entry | `plugins/harness-plugin/skills/harness-plugin/SKILL.md` |
-| Reference files | `plugins/harness-plugin/skills/harness-plugin/references/*.md` (13 files) |
+| Reference files | `plugins/harness-plugin/skills/harness-plugin/references/*.md` (15 files) |

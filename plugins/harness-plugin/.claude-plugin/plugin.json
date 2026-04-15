@@ -1,0 +1,10 @@
+{
+  "name": "harness-plugin",
+  "version": "0.1.0",
+  "description": "Bootstrap or migrate repositories into an agent-first harness proposal with migration maps, layered architecture docs, and optional runtime and observability capability packs",
+  "author": {
+    "name": "Gizele1",
+    "email": "opensource@gizele.dev"
+  },
+  "homepage": "https://github.com/Gizele1/harness-plugin"
+}

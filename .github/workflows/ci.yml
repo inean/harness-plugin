@@ -14,14 +14,18 @@ concurrency:
 
 jobs:
   validate-json:
-    name: Validate Codex plugin JSON
+    name: Validate plugin JSON
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - name: Validate plugin.json
+      - name: Validate Codex plugin manifest
         run: python3 -m json.tool plugins/harness-plugin/.codex-plugin/plugin.json > /dev/null
-      - name: Validate marketplace.json
+      - name: Validate Claude-compatible plugin manifest
+        run: python3 -m json.tool plugins/harness-plugin/.claude-plugin/plugin.json > /dev/null
+      - name: Validate Codex marketplace
         run: python3 -m json.tool .agents/plugins/marketplace.json > /dev/null
+      - name: Validate Claude-compatible marketplace
+        run: python3 -m json.tool .claude-plugin/marketplace.json > /dev/null
 
   check-docs:
     name: Doc consistency check
@@ -48,9 +52,14 @@ jobs:
         run: |
           MISSING=0
           for f in AGENTS.md ARCHITECTURE.md INSTALL.md README.md \
-                   .agents/plugins/marketplace.json \
+                   .agents/plugins/marketplace.json .claude-plugin/marketplace.json \
                    plugins/harness-plugin/.codex-plugin/plugin.json \
-                   plugins/harness-plugin/skills/harness-plugin/SKILL.md; do
+                   plugins/harness-plugin/.claude-plugin/plugin.json \
+                   plugins/harness-plugin/skills/harness-plugin/SKILL.md \
+                   plugins/harness-plugin/skills/harness-plugin/references/migration-playbook.md \
+                   plugins/harness-plugin/skills/harness-plugin/references/capability-packs.md \
+                   plugins/harness-plugin/skills/harness-plugin/references/observability-migration.md \
+                   plugins/harness-plugin/skills/harness-plugin/references/runtime-validation-workflow.md; do
             if [ ! -f "$f" ]; then
               echo "MISSING: $f"
               MISSING=$((MISSING + 1))

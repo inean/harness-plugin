@@ -1,8 +1,8 @@
 # harness-plugin
 
-Bootstrap or migrate any repository toward an agent-first harness with a Codex plugin inspired by [OpenAI's harness engineering article](https://openai.com/index/harness-engineering/).
+Bootstrap or migrate any repository toward an agent-first harness proposal inspired by [OpenAI's harness engineering article](https://openai.com/index/harness-engineering/). The plugin is still strong on greenfield bootstrap, but it now treats existing-repo migration as a first-class mode and supports a `harness-init` style workflow as an alias.
 
-> **Scope:** `harness-plugin` is a Codex-only plugin. This repo ships a repo-local Codex plugin bundle under `plugins/harness-plugin/` plus a repo marketplace entry under `.agents/plugins/marketplace.json`. Non-Codex packaging is intentionally unsupported.
+> **Scope:** This repo ships the installable bundle under `plugins/harness-plugin/`, a Codex marketplace entry under `.agents/plugins/marketplace.json`, and mirrored Claude-compatible manifests under `.claude-plugin/` so common plugin validators can inspect the same bundle. Docs stay English-only; `README.md` is the single user-facing README.
 
 ## What It Does
 
@@ -10,38 +10,107 @@ Transforms a repository into an agent-ready environment through 8 phases:
 
 | Phase | What |
 |-------|------|
-| 0. Discovery | Detect the stack, choose bootstrap vs migrate, inventory legacy artifacts, and select capability packs |
+| 0. Discovery | Detect the stack, decide bootstrap vs migration mode, inventory legacy artifacts, and select capability packs |
 | 1. AGENTS.md | Create a short orientation map that points to the real system of record |
-| 2. Knowledge Base | Build `docs/` as the system of record, including architecture, design docs, product sense, security, and quality score artifacts |
-| 3. Testing | Add an architecture boundary test with a ratchet and migration-safe baseline handling |
-| 4. Linting | Enforce import boundaries and recurring taste invariants with remediation text |
-| 5. CI | Run knowledge-base checks plus lint, typecheck, test, build, and optional pack jobs |
-| 6. GC | Add doc-gardening, quality freshness, and entropy checks with a scheduled weekly scan |
-| 7. Hooks | Add lightweight local hooks and operational handoff notes when they help |
+| 2. Knowledge Base + Proposal Architecture | Build `docs/` as the system of record and document the layered proposal architecture |
+| 3. Architecture Boundary Test | Add a ratcheted structural test with legacy-safe baselines |
+| 4. Linter + Taste Invariants | Enforce import boundaries and recurring taste rules with remediation text |
+| 5. CI Pipeline | Run knowledge-base checks plus lint, typecheck, test, build, and optional pack jobs |
+| 6. GC / Doc Gardening | Add freshness, quality, migration-drift, and entropy scans with a scheduled weekly scan |
+| 7. Hooks + Handoff | Add lightweight local hooks and operational handoff notes when they help |
 
-The plugin supports both **Bootstrap** and **Migrate** modes. In Migrate mode it requires an explicit **migration map** before large edits so existing repos keep useful knowledge, history, and baselines.
+## Operating Modes
+
+### Bootstrap mode
+
+Use this for a new repo or one with only trivial scaffolding. The plugin preserves the fast bootstrap path and scaffolds the harness directly.
+
+### Migration mode
+
+Use this for existing repos with meaningful docs, CI, tests, scripts, telemetry, or conventions. Migration mode is now explicit and mandatory before broad restructuring:
+
+- inventory current repo artifacts before major edits
+- classify each discovered artifact as `keep`, `move`, `merge`, `generate`, `bridge`, `deprecate`, or `ignore`
+- write a migration map before sweeping moves or rewrites
+- preserve history with `git mv` where possible
+- merge or explicitly deprecate useful legacy docs instead of overwriting them
+- baseline legacy architecture and lint debt first, then ratchet gradually
+
+## Proposal Architecture
+
+The target architecture now makes the article's vocabulary explicit:
+
+```text
+Types -> Config -> Repo -> Service -> Runtime -> UI
+```
+
+The plugin keeps stack-agnostic adaptations, but it requires the repo docs to show how the real folder structure maps back to that article model. Cross-cutting concerns such as auth, connectors, telemetry, and feature flags must enter through explicit **Providers**, not through ad hoc cross-domain imports.
 
 ## Capability Packs
 
-The full article describes more than repo bootstrap. `harness-plugin` closes the biggest parity gaps with optional capability packs that scaffold docs, commands, validation hooks, and directory structure without making false claims about runtime automation.
+The article covers more than repo scaffolding. `harness-plugin` now exposes optional capability packs that scaffold docs, commands, contracts, migration guidance, and validation hooks without pretending every target repo already has the required infrastructure.
 
 | Pack | What gets scaffolded | Honest boundary |
 |------|----------------------|-----------------|
-| Runtime legibility | `docs/RUNTIME_VALIDATION.md`, smoke commands, launch hooks, optional browser validation notes | The plugin cannot generically make every app bootable or CDP-driven |
-| Observability | `docs/OBSERVABILITY.md`, query contracts, `dashboards/`, optional smoke checks | The plugin cannot generically provision a full local observability stack |
-| Review loops | `docs/REVIEW_LOOPS.md`, feedback handling rules, PR iteration contract | The plugin cannot guarantee hosted reviewers or repo permissions |
-| Throughput merge policy | `docs/MERGE_POLICY.md`, blocking vs non-blocking gate rules, escalation path | The plugin should not impose risky merge behavior without explicit repo policy |
-| Evaluation harnesses | `docs/EVALS.md`, `evals/`, fixtures, scoring or smoke commands, CI hook | The plugin cannot invent realistic datasets or product-specific scoring semantics |
+| Runtime/UI validation | `docs/RUNTIME_VALIDATION.md`, start/restart commands, browser or CDP contracts, snapshots, replay notes, smoke hooks | The plugin cannot generically make every app bootable or browser-driven |
+| Full observability stack for agents | `docs/OBSERVABILITY.md`, signal naming, validation commands, `dashboards/`, migration notes, local/dev topology docs | The plugin cannot generically provision every environment's telemetry stack |
+| Review loops | `docs/REVIEW_LOOPS.md`, feedback handling rules, PR intake workflow | The plugin cannot guarantee hosted reviewers or repo permissions |
+| Throughput merge policy | `docs/MERGE_POLICY.md`, gate policy, escalation rules | The plugin should not impose risky merge behavior without explicit repo policy |
+| Evaluation harnesses | `docs/EVALS.md`, `evals/`, fixtures, smoke/scoring hooks | The plugin cannot invent repo-specific datasets or scoring semantics |
 
-## Codex Plugin Layout
+Each pack must declare `live`, `scaffolded`, or `deferred` status.
 
-This repo ships a repo-local Codex plugin bundle:
+## Existing Observability Stacks
+
+The observability pack now supports migration instead of assuming greenfield provisioning. The proposal architecture follows the article's preferred path:
+
+```text
+app emits logs + OTLP metrics + OTLP traces
+  -> Vector
+  -> Victoria Logs / Victoria Metrics / Victoria Traces
+  -> LogQL / PromQL / TraceQL query surfaces
+```
+
+But existing setups are handled explicitly:
+
+- keep and document when the current stack is already legible to agents
+- bridge into the proposal architecture when the current stack is useful but incomplete
+- recommend staged migration when the current stack is opaque or hard to use in local dev
+
+The reference guidance covers OpenTelemetry SDKs, OTLP exporters, OpenTelemetry Collector, Prometheus, Grafana, Loki, Tempo, Datadog, New Relic, and custom telemetry scripts.
+
+## Runtime/UI Validation
+
+The runtime/UI validation pack models the article's validation loop:
+
+- app start, stop, and restart commands
+- browser or CDP validation when available
+- before and after snapshot expectations
+- workload replay or user-journey reruns
+- failure triage that links UI symptoms back to logs, metrics, and traces
+
+If a repo cannot provision browser automation generically, the plugin still scaffolds the commands, contracts, and artifact locations agents will need later.
+
+## Knowledge Base and GC Story
+
+The plugin now treats in-repo knowledge as the system of record and strengthens the maintenance loop around it:
+
+- `docs/PRODUCT_SENSE.md` as a durable product artifact
+- `docs/design-docs/index.md` with verification status
+- `docs/QUALITY_SCORE.md` with update cadence and freshness expectations
+- migration of useful legacy docs into the harness structure
+- doc-gardening and stale-doc detection
+- GC checks for knowledge-base drift, migration-map drift, design-doc status staleness, and quality freshness
+
+## Plugin Layout
 
 ```text
 .
 ├── .agents/plugins/marketplace.json
+├── .claude-plugin/marketplace.json
 ├── plugins/harness-plugin/
 │   ├── .codex-plugin/plugin.json
+│   ├── .claude-plugin/plugin.json
 │   ├── assets/
 │   └── skills/harness-plugin/
 │       ├── SKILL.md
@@ -51,31 +120,20 @@ This repo ships a repo-local Codex plugin bundle:
 └── .github/workflows/
 ```
 
-The plugin bundle under `plugins/harness-plugin/` is the distributable artifact. Root docs and scripts describe and validate that bundle.
+The bundle under `plugins/harness-plugin/` is the shipped artifact. Root docs and validation scripts describe and validate that bundle.
 
 ## Installation
 
-### Repo-local Codex plugin
-
-This is the supported default. Clone the repo and open it in Codex. The repo already includes:
-
-- `.agents/plugins/marketplace.json`
-- `plugins/harness-plugin/.codex-plugin/plugin.json`
-
-Codex can use the repo-local marketplace entry that points to `./plugins/harness-plugin`.
-
-### Home-local Codex plugin
-
-If you want the plugin outside this repo, copy `plugins/harness-plugin/` to `~/plugins/harness-plugin` and add the equivalent entry to `~/.agents/plugins/marketplace.json`. `INSTALL.md` includes a machine-readable example.
+The repo already contains the supported local bundle and mirrored compatibility manifests. See [INSTALL.md](INSTALL.md) for repo-local install details, validation commands, and manifest paths.
 
 ## Usage
 
-Once the Codex plugin is available, prompt it directly:
+Once the plugin is available, prompt it directly:
 
 - "Use harness-plugin to bootstrap this repo"
-- "Use harness-plugin in migrate mode for this existing service"
-- "Add the eval and observability packs to this harness"
-- "Make this repo agent-ready without breaking current CI"
+- "Use harness-plugin in migration mode for this existing service"
+- "Use harness-init to migrate this repo into the harness proposal architecture"
+- "Add the runtime/UI validation and observability packs, but keep current telemetry where possible"
 
 ## What It Creates in Target Repos
 
@@ -121,46 +179,33 @@ project-root/
 ## Migration Rules
 
 - Inventory before editing. Existing repos get a discovery-first migration pass, not blind regeneration.
-- Classify each discovered artifact as `keep`, `move`, `merge`, `generate`, `deprecate`, or `ignore`.
+- Classify each discovered artifact as `keep`, `move`, `merge`, `generate`, `bridge`, `deprecate`, or `ignore`.
 - Preserve history with `git mv` whenever a file can relocate cleanly.
 - Merge overlapping docs when they contain useful knowledge; do not destructively overwrite them.
-- Create deprecation stubs only when humans, scripts, or links still need a redirect.
+- Create deprecation stubs only when humans, scripts, or links still need redirects.
 - Establish baselines for current violations so CI gets tighter over time instead of breaking on day one.
-
-## Knowledge-Base and GC Checks
-
-The article treats repository knowledge as mechanically validated. `harness-plugin` scaffolds checks for:
-
-- reference integrity and cross-link validity
-- knowledge-base structure and freshness
-- design-doc verification status
-- quality score freshness or update cadence
-- architecture ratchets and legacy baselines
-- optional capability-pack checks when those packs are selected
-
-The scheduled GC workflow stays report-only. It should open issues or PRs, not silently mutate the branch.
 
 ## Supported Stacks
 
-The plugin is stack-agnostic and routes enforcement to the actual repository:
+The plugin remains stack-agnostic and routes enforcement to the actual repository:
 
-- Web frontend stacks such as React, Vue, and Svelte
-- Backend APIs such as FastAPI, Express, Rails, and similar service layouts
-- Full-stack frameworks such as Next.js, Nuxt, and SvelteKit
-- Monorepos such as Turborepo and Nx
-- Any other repo where the real dependency graph can be discovered from code and configs
+- web frontend stacks such as React, Vue, and Svelte
+- backend APIs such as FastAPI, Express, Rails, and similar service layouts
+- full-stack frameworks such as Next.js, Nuxt, and SvelteKit
+- monorepos such as Turborepo and Nx
+- any repo where the real dependency graph can be discovered from code and configs
 
 ## Honest Scope
 
-`harness-plugin` covers the repository scaffolding and migration discipline part of harness engineering. It does not generically solve:
+`harness-plugin` covers the scaffolding, migration discipline, and capability-contract part of harness engineering. It does not generically solve:
 
 - fully working local runtime harnesses for every app
-- end-to-end observability provisioning
+- one-size-fits-all observability provisioning
 - hosted agent review infrastructure
 - automatic product-quality scoring with repo-specific semantics
 - repo-specific eval datasets, scorers, or dashboards without source material
 
-For those areas, the plugin creates the docs, commands, contracts, directories, and validation hooks that let a repo-specific implementation grow safely.
+For those areas, the plugin creates the docs, commands, contracts, directory structure, and validation hooks that let a repo-specific implementation grow safely.
 
 ## References
 

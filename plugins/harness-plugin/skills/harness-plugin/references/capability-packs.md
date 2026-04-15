@@ -15,12 +15,12 @@ Do not describe a pack as operational unless the repo can actually run it.
 
 ## Pack Menu
 
-| Pack | Add when | Scaffold | Honest boundary |
-|------|----------|----------|-----------------|
-| Runtime legibility | UI apps, CLIs, or services that agents should launch and validate | `docs/RUNTIME_VALIDATION.md`, smoke commands, launch scripts, optional browser/video hooks | The plugin cannot generically make every app bootable or CDP-driven |
-| Observability | Services with logs, metrics, traces, or dashboards | `docs/OBSERVABILITY.md`, `dashboards/`, query scripts, metric/log contracts | The plugin cannot generically provision a full observability stack |
+| Pack | Add when | Required scaffold | Honest boundary |
+|------|----------|-------------------|-----------------|
+| Runtime/UI validation | UI apps, CLIs, or services that agents should launch, replay, and validate | `docs/RUNTIME_VALIDATION.md`, start and restart commands, snapshot contract, replay contract, smoke hooks | The plugin cannot generically make every app bootable or browser-driven |
+| Full observability stack for agents | Services with logs, metrics, traces, dashboards, or telemetry debt | `docs/OBSERVABILITY.md`, `dashboards/`, signal naming contract, validation commands, migration notes | The plugin cannot generically provision every environment's telemetry stack |
 | Review loops | Teams using agent or mixed human/agent review | `docs/REVIEW_LOOPS.md`, feedback handling rules, PR comment intake command | The plugin cannot guarantee hosted reviewers or repo permissions |
-| Throughput merge policy | High-throughput repos that need minimal blocking gates | `docs/MERGE_POLICY.md`, label/branch policy, escalation rules | The plugin should not force risky merge behavior without explicit repo policy |
+| Throughput merge policy | High-throughput repos that need minimal blocking gates | `docs/MERGE_POLICY.md`, label or branch policy, escalation rules | The plugin should not force risky merge behavior without explicit repo policy |
 | Evaluation harnesses | Product features, prompts, ranking systems, regressions, or quality gates | `docs/EVALS.md`, `evals/`, fixtures, smoke/scoring commands, CI job hook | The plugin cannot invent realistic datasets or scoring semantics for every repo |
 
 ## Required Status Marking
@@ -37,15 +37,21 @@ Record the status in:
 
 ## Minimum Deliverables Per Pack
 
-### Runtime Legibility
-- target app start/stop command
+### Runtime/UI validation
+- target app start, stop, and restart command
 - smoke validation command
-- notes on screenshots, videos, or browser tooling if present
+- browser, CDP, or equivalent driver contract when present
+- before and after snapshot expectations
+- replayable workload or user journey contract
+- failure triage notes that connect UI symptoms to logs, metrics, and traces
 
-### Observability
+### Full observability stack for agents
 - log, metric, and trace entry points
+- architecture section showing how telemetry flows through the current or proposed topology
 - dashboard definition location if dashboards exist
 - query examples or smoke checks
+- keep, bridge, or staged migration decision if telemetry already exists
+- explicit signal naming and troubleshooting sections
 
 ### Review Loops
 - source of review feedback
@@ -61,3 +67,10 @@ Record the status in:
 - dataset or fixture location
 - scoring or assertion command
 - baseline policy and ratchet expectations
+
+## Pack Selection Heuristics
+
+- Prefer the runtime/UI validation pack when the repo has a user journey that can be replayed or a service that agents should launch and inspect.
+- Prefer the observability pack when the repo already emits telemetry or needs reliable performance and failure correlation.
+- Choose `bridge` over forced replacement when existing runtime or observability tooling is already useful.
+- A scaffolded pack is valuable if it makes the missing contract explicit and keeps future agent work honest.
