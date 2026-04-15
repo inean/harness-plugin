@@ -2,7 +2,7 @@
 
 ## Scope
 
-harness-plugin is a documentation-first plugin bundle. It contains no application code, no authentication flows, no secrets, and no runtime network access. It ships one bundle with mirrored Codex-native and Claude-compatible manifest surfaces for local discovery and validation.
+harness-plugin is a documentation-first plugin bundle. It contains no application code, no authentication flows, no secrets, and no runtime network access. It ships one Codex bundle with local marketplace discovery and validation.
 
 ## What This Plugin Does NOT Do
 
@@ -33,4 +33,4 @@ When users run harness-plugin on their projects, it generates:
 - Never commit actual secrets, API keys, or tokens to this repo
 - Generated templates must use placeholder descriptions, not real credential names
 - `docs/SECURITY.md` template (in `references/security-template.md`) has exclusion rules — follow them
-- Review all changes to `.agents/plugins/marketplace.json`, `.claude-plugin/marketplace.json`, `plugins/harness-plugin/.codex-plugin/plugin.json`, and `plugins/harness-plugin/.claude-plugin/plugin.json` carefully — these control bundle discovery and validation
+- Review all changes to `.agents/plugins/marketplace.json` and `plugins/harness-plugin/.codex-plugin/plugin.json` carefully — these control bundle discovery and validation

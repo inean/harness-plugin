@@ -1,16 +1,14 @@
 # Architecture
 
-harness-plugin is a documentation-first plugin repository. The installable bundle lives in `plugins/harness-plugin/`; root docs and scripts explain and validate that bundle across both Codex-native and Claude-compatible manifest surfaces.
+harness-plugin is a documentation-first plugin repository. The installable bundle lives in `plugins/harness-plugin/`; root docs and scripts explain and validate that bundle through its Codex manifest and local marketplace entry.
 
 ## Domain Map
 
 ```text
 harness-plugin/
 ├── .agents/plugins/                 Codex marketplace metadata
-├── .claude-plugin/                  Claude-compatible marketplace metadata
 ├── plugins/harness-plugin/          Installable plugin bundle
 │   ├── .codex-plugin/               Codex plugin manifest
-│   ├── .claude-plugin/              Claude-compatible plugin manifest
 │   ├── assets/                      Plugin assets
 │   └── skills/harness-plugin/       Skill definition + reference templates
 ├── docs/                            Project documentation
@@ -27,10 +25,9 @@ harness-plugin/
 ┌─────────────────────────────────────────────┐
 │ Docs (README, INSTALL, AGENTS, etc.)       │  User-facing and maintainer docs
 ├─────────────────────────────────────────────┤
-│ Marketplaces (.agents/, .claude-plugin/)   │  Local bundle discovery metadata
+│ Marketplace (.agents/)                     │  Local bundle discovery metadata
 ├─────────────────────────────────────────────┤
-│ Plugin Manifests (.codex-plugin/,          │  Bundle metadata for each host surface
-│ .claude-plugin/)                           │
+│ Plugin Manifest (.codex-plugin/)           │  Bundle metadata for the shipped surface
 ├─────────────────────────────────────────────┤
 │ Skill (plugins/.../SKILL.md)               │  Source of truth for workflow behavior
 ├─────────────────────────────────────────────┤
@@ -44,7 +41,7 @@ harness-plugin/
 
 - **Docs** describe the bundle and must stay in sync with the shipped skill and manifests
 - **Marketplaces** point to `./plugins/harness-plugin` and must not drift from the actual bundle path
-- **Plugin manifests** describe the same bundle and version across Codex-native and Claude-compatible surfaces
+- **Plugin manifest** and **marketplace entry** describe the shipped Codex bundle and its discovery path
 - **Skill** references its `references/*.md` files and remains the source of truth
 - **References** stay standalone and do not depend on one another, except the documented cross-phase exceptions
 - **Validation** is split by intent: `scripts/check-docs.sh` owns bundle consistency and source-of-truth parity, while `scripts/gc/check-consistency.sh` owns drift- and entropy-oriented checks
@@ -56,9 +53,7 @@ See `docs/architecture/LAYERS.md` for the full dependency rules and enforcement 
 | File | Depends on | Depended on by |
 |------|-----------|----------------|
 | `.agents/plugins/marketplace.json` | `plugins/harness-plugin/` path | Codex local plugin discovery |
-| `.claude-plugin/marketplace.json` | `plugins/harness-plugin/` path | `claude plugin validate .` and other compatibility tooling |
 | `plugins/harness-plugin/.codex-plugin/plugin.json` | `plugins/harness-plugin/skills/`, `plugins/harness-plugin/assets/` | Codex plugin runtime |
-| `plugins/harness-plugin/.claude-plugin/plugin.json` | `plugins/harness-plugin/` bundle identity | Claude-compatible plugin validation |
 | `plugins/harness-plugin/skills/harness-plugin/SKILL.md` | `references/*.md` | Users, README, AGENTS.md |
 | `references/*.md` | — | `SKILL.md` Read directives |
 | `README.md` | `SKILL.md` (source of truth) | Users |

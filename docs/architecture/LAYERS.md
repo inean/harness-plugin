@@ -8,12 +8,10 @@
 │                                              │  AGENTS.md, ARCHITECTURE.md, docs/**
 │  May reference: Marketplaces, Manifests, Skill, References
 ├──────────────────────────────────────────────┤
-│ Marketplaces                                 │  .agents/plugins/marketplace.json,
-│                                              │  .claude-plugin/marketplace.json
+│ Marketplace                                  │  .agents/plugins/marketplace.json
 │  May reference: Plugin root path only
 ├──────────────────────────────────────────────┤
-│ Plugin Manifests                             │  plugins/harness-plugin/.codex-plugin/plugin.json,
-│                                              │  plugins/harness-plugin/.claude-plugin/plugin.json
+│ Plugin Manifest                              │  plugins/harness-plugin/.codex-plugin/plugin.json
 │  May reference: Skill root, asset paths, bundle identity
 ├──────────────────────────────────────────────┤
 │ Skill                                        │  plugins/harness-plugin/skills/harness-plugin/SKILL.md
@@ -34,9 +32,9 @@ Behavioral truth flows from **Skill -> References**. Marketplace and manifest fi
 
 | Layer | Path | Allowed dependencies |
 |------|------|----------------------|
-| Docs | `*.md` (root), `docs/**` | Marketplaces, Manifests, Skill, References |
-| Marketplaces | `.agents/plugins/marketplace.json`, `.claude-plugin/marketplace.json` | Plugin root path only |
-| Plugin Manifests | `plugins/harness-plugin/.codex-plugin/plugin.json`, `plugins/harness-plugin/.claude-plugin/plugin.json` | skill root, asset paths, bundle identity |
+| Docs | `*.md` (root), `docs/**` | Marketplace, Manifest, Skill, References |
+| Marketplace | `.agents/plugins/marketplace.json` | Plugin root path only |
+| Plugin Manifest | `plugins/harness-plugin/.codex-plugin/plugin.json` | skill root, asset paths, bundle identity |
 | Skill | `plugins/harness-plugin/skills/harness-plugin/SKILL.md` | References only |
 | References/Assets | `plugins/harness-plugin/skills/harness-plugin/references/`, `assets/` | None — standalone templates and assets |
 | Validation | `scripts/`, `.github/workflows/` | Read-only access to all above |

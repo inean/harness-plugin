@@ -2,7 +2,7 @@
 
 Bootstrap or migrate any repository toward an agent-first harness proposal inspired by [OpenAI's harness engineering article](https://openai.com/index/harness-engineering/). The plugin is still strong on greenfield bootstrap, but it now treats existing-repo migration as a first-class mode and supports a `harness-init` style workflow as an alias.
 
-> **Scope:** This repo ships the installable bundle under `plugins/harness-plugin/`, a Codex marketplace entry under `.agents/plugins/marketplace.json`, and mirrored Claude-compatible manifests under `.claude-plugin/` so common plugin validators can inspect the same bundle. Docs stay English-only; `README.md` is the single user-facing README.
+> **Scope:** This repo ships the installable bundle under `plugins/harness-plugin/` and a Codex marketplace entry under `.agents/plugins/marketplace.json`. Docs stay English-only; `README.md` is the single user-facing README.
 
 ## What It Does
 
@@ -123,10 +123,8 @@ The plugin now treats in-repo knowledge as the system of record and strengthens 
 ```text
 .
 ├── .agents/plugins/marketplace.json
-├── .claude-plugin/marketplace.json
 ├── plugins/harness-plugin/
 │   ├── .codex-plugin/plugin.json
-│   ├── .claude-plugin/plugin.json
 │   ├── assets/
 │   └── skills/harness-plugin/
 │       ├── SKILL.md
@@ -140,7 +138,7 @@ The bundle under `plugins/harness-plugin/` is the shipped artifact. Root docs an
 
 ## Installation
 
-The repo already contains the supported local bundle and mirrored compatibility manifests. See [INSTALL.md](INSTALL.md) for repo-local install details, validation commands, and manifest paths.
+The repo already contains the supported local bundle and Codex marketplace metadata. See [INSTALL.md](INSTALL.md) for repo-local install details, validation commands, and manifest paths.
 
 ## Usage
 

@@ -11,7 +11,7 @@ A documentation-first plugin repository that bootstraps or migrates agent-ready 
 | Layer | Tech |
 |-------|------|
 | Language | Markdown + JSON + Bash |
-| Bundle host | Codex plugin bundle with mirrored Claude-compatible validation manifests |
+| Bundle host | Codex plugin bundle with local marketplace discovery |
 | License | MIT |
 
 ## Directory structure
@@ -25,8 +25,6 @@ A documentation-first plugin repository that bootstraps or migrates agent-ready 
 ├── .agents/
 │   └── plugins/
 │       └── marketplace.json           # Repo-local Codex marketplace entry
-├── .claude-plugin/
-│   └── marketplace.json               # Claude-compatible validation marketplace
 ├── docs/
 │   ├── architecture/
 │   │   └── LAYERS.md                  # Layer rules, dependency constraints
@@ -39,8 +37,6 @@ A documentation-first plugin repository that bootstraps or migrates agent-ready 
 │   └── harness-plugin/
 │       ├── .codex-plugin/
 │       │   └── plugin.json            # Codex plugin manifest
-│       ├── .claude-plugin/
-│       │   └── plugin.json            # Claude-compatible plugin manifest
 │       ├── assets/                    # Plugin assets
 │       └── skills/
 │           └── harness-plugin/
@@ -75,32 +71,28 @@ A documentation-first plugin repository that bootstraps or migrates agent-ready 
 
 1. **README.md is the only user-facing README** — keep it in English and do not recreate duplicate language-specific READMEs.
 2. **The bundle under `plugins/harness-plugin/` is the shipped artifact** — root docs describe it, but that directory is what gets installed.
-3. **Codex and Claude-compatible manifests must stay in sync** — `.agents/plugins/marketplace.json`, `.claude-plugin/marketplace.json`, `plugins/harness-plugin/.codex-plugin/plugin.json`, and `plugins/harness-plugin/.claude-plugin/plugin.json` all describe the same bundle.
-4. **Version must be consistent** — both plugin manifests, `plugins/harness-plugin/skills/harness-plugin/SKILL.md`, and `INSTALL.md` all declare `0.1.0`.
+3. **Codex marketplace and plugin manifest must stay in sync** — `.agents/plugins/marketplace.json` and `plugins/harness-plugin/.codex-plugin/plugin.json` both describe the same bundle.
+4. **Version must be consistent** — the Codex plugin manifest, `plugins/harness-plugin/skills/harness-plugin/SKILL.md`, and `INSTALL.md` all declare `0.1.0`.
 5. **SKILL.md is the source of truth** — README describes what the plugin does; SKILL.md defines how it works. If they conflict, fix README.
 6. **Reference files are loaded on demand** — every `Read references/*.md` directive in SKILL.md must point to a real file.
 7. **Reference files must stay independent** — no cross-references between reference files (exceptions: `stack-routing.md`, `ci-templates.md`).
-8. **Marketplace source paths must remain stable** — both marketplace files should point to `./plugins/harness-plugin`.
+8. **Marketplace source path must remain stable** — `.agents/plugins/marketplace.json` should point to `./plugins/harness-plugin`.
 
 ## How to modify
 
 - **Changing skill behavior:** edit `plugins/harness-plugin/skills/harness-plugin/SKILL.md`
 - **Changing templates:** edit the relevant `plugins/harness-plugin/skills/harness-plugin/references/*.md`
 - **Changing Codex metadata:** edit `plugins/harness-plugin/.codex-plugin/plugin.json`
-- **Changing Claude-compatible metadata:** edit `plugins/harness-plugin/.claude-plugin/plugin.json`
-- **Changing marketplace availability:** edit `.agents/plugins/marketplace.json` and `.claude-plugin/marketplace.json`
-- **Updating version:** change both plugin manifests, `SKILL.md`, and `INSTALL.md`
+- **Changing marketplace availability:** edit `.agents/plugins/marketplace.json`
+- **Updating version:** change the Codex plugin manifest, `SKILL.md`, and `INSTALL.md`
 
 ## How to test
 
 ```bash
 python3 -m json.tool plugins/harness-plugin/.codex-plugin/plugin.json > /dev/null
-python3 -m json.tool plugins/harness-plugin/.claude-plugin/plugin.json > /dev/null
 python3 -m json.tool .agents/plugins/marketplace.json > /dev/null
-python3 -m json.tool .claude-plugin/marketplace.json > /dev/null
 bash scripts/check-docs.sh
 bash scripts/gc/check-consistency.sh
-claude plugin validate .
 ```
 
 ## Where to Look First
@@ -114,8 +106,7 @@ claude plugin validate .
 | Add or edit a reference | plugins/harness-plugin/skills/harness-plugin/references/ |
 | Multi-agent delivery reference | plugins/harness-plugin/skills/harness-plugin/references/multi-agent-delivery.md |
 | Codex plugin manifest | plugins/harness-plugin/.codex-plugin/plugin.json |
-| Claude-compatible manifest | plugins/harness-plugin/.claude-plugin/plugin.json |
-| Marketplace entries | .agents/plugins/marketplace.json and .claude-plugin/marketplace.json |
+| Marketplace entry | .agents/plugins/marketplace.json |
 | Install instructions | INSTALL.md |
 | DO/DON'T patterns | docs/golden-principles/ |
 

@@ -7,14 +7,14 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PLUGIN_ROOT="$REPO_ROOT/plugins/harness-plugin"
 CODEX_PLUGIN_JSON="$PLUGIN_ROOT/.codex-plugin/plugin.json"
-CLAUDE_PLUGIN_JSON="$PLUGIN_ROOT/.claude-plugin/plugin.json"
 CODEX_MARKETPLACE_JSON="$REPO_ROOT/.agents/plugins/marketplace.json"
-CLAUDE_MARKETPLACE_JSON="$REPO_ROOT/.claude-plugin/marketplace.json"
 SKILL="$PLUGIN_ROOT/skills/harness-plugin/SKILL.md"
 REF_DIR="$PLUGIN_ROOT/skills/harness-plugin/references"
 README="$REPO_ROOT/README.md"
 INSTALL="$REPO_ROOT/INSTALL.md"
 AGENTS_DOC="$REPO_ROOT/AGENTS.md"
+ARCHITECTURE_DOC="$REPO_ROOT/ARCHITECTURE.md"
+SECURITY_DOC="$REPO_ROOT/docs/SECURITY.md"
 LAYERS_DOC="$REPO_ROOT/docs/architecture/LAYERS.md"
 AGENTS_TEMPLATE="$REF_DIR/agents-md-template.md"
 CONTEXT_REF="$REF_DIR/context-strategy.md"
@@ -67,9 +67,7 @@ for f in \
   README.md \
   docs/SECURITY.md \
   .agents/plugins/marketplace.json \
-  .claude-plugin/marketplace.json \
   plugins/harness-plugin/.codex-plugin/plugin.json \
-  plugins/harness-plugin/.claude-plugin/plugin.json \
   plugins/harness-plugin/skills/harness-plugin/SKILL.md \
   plugins/harness-plugin/skills/harness-plugin/references/migration-playbook.md \
   plugins/harness-plugin/skills/harness-plugin/references/multi-agent-delivery.md \
@@ -103,21 +101,20 @@ echo ""
 
 echo "--- Version consistency ---"
 CODEX_VER="$(python3 -c "import json; print(json.load(open('$CODEX_PLUGIN_JSON'))['version'])" 2>/dev/null || echo "PARSE_ERROR")"
-CLAUDE_VER="$(python3 -c "import json; print(json.load(open('$CLAUDE_PLUGIN_JSON')).get('version', 'PARSE_ERROR'))" 2>/dev/null || echo "PARSE_ERROR")"
 SKILL_VER="$(sed -n 's/.*version:[[:space:]]*\"*\([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\).*/\1/p' "$SKILL" 2>/dev/null | head -1)"
 SKILL_VER="${SKILL_VER:-PARSE_ERROR}"
 INSTALL_VER="$(sed -n 's/| Version | \([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\) |/\1/p' "$INSTALL" | head -1)"
 INSTALL_VER="${INSTALL_VER:-PARSE_ERROR}"
 
-if [ "$CODEX_VER" = "0.1.0" ] && [ "$CODEX_VER" = "$CLAUDE_VER" ] && [ "$CODEX_VER" = "$SKILL_VER" ] && [ "$CODEX_VER" = "$INSTALL_VER" ]; then
-  pass "Version normalized to 0.1.0 across manifests, SKILL.md, and INSTALL.md"
+if [ "$CODEX_VER" = "0.1.0" ] && [ "$CODEX_VER" = "$SKILL_VER" ] && [ "$CODEX_VER" = "$INSTALL_VER" ]; then
+  pass "Version normalized to 0.1.0 across the Codex manifest, SKILL.md, and INSTALL.md"
 else
-  error "Version mismatch: codex=$CODEX_VER claude=$CLAUDE_VER SKILL.md=$SKILL_VER INSTALL.md=$INSTALL_VER"
+  error "Version mismatch: codex=$CODEX_VER SKILL.md=$SKILL_VER INSTALL.md=$INSTALL_VER"
 fi
 echo ""
 
 echo "--- JSON validity and manifest parity ---"
-for jf in "$CODEX_PLUGIN_JSON" "$CLAUDE_PLUGIN_JSON" "$CODEX_MARKETPLACE_JSON" "$CLAUDE_MARKETPLACE_JSON"; do
+for jf in "$CODEX_PLUGIN_JSON" "$CODEX_MARKETPLACE_JSON"; do
   if python3 -m json.tool "$jf" >/dev/null 2>&1; then
     pass "${jf#$REPO_ROOT/} is valid JSON"
   else
@@ -125,7 +122,7 @@ for jf in "$CODEX_PLUGIN_JSON" "$CLAUDE_PLUGIN_JSON" "$CODEX_MARKETPLACE_JSON" "
   fi
 done
 
-if REPO_ROOT="$REPO_ROOT" PLUGIN_ROOT="$PLUGIN_ROOT" CODEX_PLUGIN_JSON="$CODEX_PLUGIN_JSON" CLAUDE_PLUGIN_JSON="$CLAUDE_PLUGIN_JSON" CODEX_MARKETPLACE_JSON="$CODEX_MARKETPLACE_JSON" CLAUDE_MARKETPLACE_JSON="$CLAUDE_MARKETPLACE_JSON" python3 - <<'PY'
+if REPO_ROOT="$REPO_ROOT" PLUGIN_ROOT="$PLUGIN_ROOT" CODEX_PLUGIN_JSON="$CODEX_PLUGIN_JSON" CODEX_MARKETPLACE_JSON="$CODEX_MARKETPLACE_JSON" python3 - <<'PY'
 import json
 import os
 from pathlib import Path
@@ -133,14 +130,10 @@ from pathlib import Path
 repo_root = Path(os.environ["REPO_ROOT"])
 plugin_root = Path(os.environ["PLUGIN_ROOT"])
 codex_plugin = json.loads(Path(os.environ["CODEX_PLUGIN_JSON"]).read_text())
-claude_plugin = json.loads(Path(os.environ["CLAUDE_PLUGIN_JSON"]).read_text())
 codex_marketplace = json.loads(Path(os.environ["CODEX_MARKETPLACE_JSON"]).read_text())
-claude_marketplace = json.loads(Path(os.environ["CLAUDE_MARKETPLACE_JSON"]).read_text())
 
 assert codex_plugin["name"] == "harness-plugin"
-assert claude_plugin["name"] == "harness-plugin"
 assert codex_plugin["version"] == "0.1.0"
-assert claude_plugin["version"] == "0.1.0"
 assert codex_plugin["skills"] == "./skills/"
 assert (plugin_root / codex_plugin["skills"][2:]).is_dir()
 for asset in [
@@ -156,26 +149,11 @@ assert any(
     and plugin.get("source", {}).get("path") == "./plugins/harness-plugin"
     for plugin in codex_marketplace.get("plugins", [])
 )
-assert any(
-    plugin.get("name") == "harness-plugin"
-    and plugin.get("source") == "./plugins/harness-plugin"
-    for plugin in claude_marketplace.get("plugins", [])
-)
 PY
 then
-  pass "Manifest paths, bundle identity, and marketplace entries resolve correctly"
+  pass "Codex manifest paths, bundle identity, and marketplace entry resolve correctly"
 else
-  error "Manifest paths, bundle identity, or marketplace entries are invalid"
-fi
-
-if command -v claude >/dev/null 2>&1; then
-  if claude plugin validate "$REPO_ROOT" >/dev/null 2>&1 && claude plugin validate "$PLUGIN_ROOT" >/dev/null 2>&1; then
-    pass "claude plugin validate succeeds for repo root and plugin root"
-  else
-    error "claude plugin validate failed"
-  fi
-else
-  pass "Claude CLI unavailable; skipped claude plugin validate"
+  error "Codex manifest paths, bundle identity, or marketplace entry are invalid"
 fi
 echo ""
 
@@ -246,17 +224,13 @@ else
 fi
 require_contains "$INSTALL" 'plugins/harness-plugin/skills/harness-plugin/references/\*\.md' 'INSTALL.md documents the reference inventory path'
 require_absent "$INSTALL" 'Expected:[[:space:]]*[0-9]+' 'Fixed reference-count expectations'
-require_contains "$INSTALL" 'claude plugin validate \.' 'INSTALL.md documents claude plugin validate .'
 echo ""
 
 echo "--- Repo architecture wording ---"
 require_contains "$AGENTS_DOC" '\.agents/plugins/marketplace\.json' 'AGENTS.md points to the Codex marketplace'
-require_contains "$AGENTS_DOC" '\.claude-plugin/marketplace\.json' 'AGENTS.md points to the Claude-compatible marketplace'
 require_contains "$AGENTS_DOC" 'plugins/harness-plugin/\.codex-plugin/plugin\.json' 'AGENTS.md points to the Codex plugin manifest'
-require_contains "$AGENTS_DOC" 'plugins/harness-plugin/\.claude-plugin/plugin\.json' 'AGENTS.md points to the Claude-compatible plugin manifest'
 require_contains "$LAYERS_DOC" '\.agents/plugins/marketplace\.json' 'LAYERS.md documents the Codex marketplace layer'
-require_contains "$LAYERS_DOC" '\.claude-plugin/marketplace\.json' 'LAYERS.md documents the Claude-compatible marketplace layer'
-for file in "$README" "$INSTALL" "$AGENTS_DOC" "$LAYERS_DOC"; do
+for file in "$README" "$INSTALL" "$AGENTS_DOC" "$ARCHITECTURE_DOC" "$SECURITY_DOC" "$LAYERS_DOC"; do
   require_absent "$file" 'README_CN' 'README_CN references'
 done
 echo ""
