@@ -19,8 +19,11 @@ Pick what fits the stack (not all are needed):
 | `NAMING.md` | File naming, export conventions | Always |
 | `ERROR_HANDLING.md` | Error handling and reporting | Always |
 | `TESTING.md` | What to test, testing patterns | If tests exist |
+| `BOUNDARY_VALIDATION.md` | Validate data shapes or boundaries before crossing layers | Services / APIs |
+| `LOGGING.md` | Structured logging, log fields, no ad-hoc prints | If logs matter |
+| `FILE_SIZE.md` | File size / function size ratchets | If review feedback repeats here |
 | `DATA_FETCHING.md` | Data fetching and caching | Frontend |
-| `LOGGING.md` | Logging conventions | If custom logger |
+| `REVIEW_FEEDBACK.md` | Promote recurring PR feedback into durable rules | Mature repos |
 
 ## Template
 
@@ -47,3 +50,9 @@ Pick what fits the stack (not all are needed):
 ## Exceptions
 {When the rule doesn't apply, if any}
 ~~~
+
+## Promotion Rule
+
+If humans or agent reviewers leave the same comment more than once, either:
+- encode it in a golden principle file, or
+- enforce it mechanically with a linter, test, or GC check.

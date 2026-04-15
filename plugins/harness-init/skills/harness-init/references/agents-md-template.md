@@ -42,11 +42,17 @@ Dependency flows **downward only**. Never import upward.
 ARCHITECTURE.md                       Top-level domain map (root)
 docs/
 ├── architecture/                     Layer rules, dependency graph
+├── design-docs/                      ADR index + verification status
 ├── golden-principles/                Canonical patterns (DO/DON'T examples)
+├── PRODUCT_SENSE.md                  Durable product intent and tradeoffs
+├── QUALITY_SCORE.md                  Quality gaps and scoring cadence
 ├── SECURITY.md                       Auth, secrets, threat model
 ├── guides/                           Setup, testing, deployment how-tos
 ├── exec-plans/                       Feature implementation plans
-├── design-docs/                      Architecture decision records
+│   └── active/harness-migration-map.md
+├── EVALS.md                          Evaluation contract (if enabled)
+├── OBSERVABILITY.md                  Logs/metrics/traces contract (if enabled)
+├── REVIEW_LOOPS.md                   Review and feedback loop contract (if enabled)
 └── references/                       External library docs (LLM-friendly)
 ```
 
@@ -56,6 +62,7 @@ docs/
 |-------------------|-------------------------------|
 | Architecture overview | ARCHITECTURE.md (root)    |
 | Layer rules       | docs/architecture/LAYERS.md   |
+| Migration status  | docs/exec-plans/active/harness-migration-map.md |
 | {common task 1}   | {directory/file}              |
 | {common task 2}   | {directory/file}              |
 | {common task 3}   | {directory/file}              |
@@ -65,5 +72,5 @@ docs/
 - MUST: {hard rule with pointer to enforcement}
 - MUST NOT: {prohibition with pointer to LAYERS.md}
 - PREFER: {soft preference}
-- VERIFY: {verification command before PR}
+- VERIFY: {knowledge_base_check} && {verification command before PR}
 ~~~

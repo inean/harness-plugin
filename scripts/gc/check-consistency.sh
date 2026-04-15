@@ -1,178 +1,210 @@
 #!/usr/bin/env bash
-# Consistency check script for harness-init
-# Replaces traditional boundary tests for this documentation-only project.
-#
-# Checks:
-#   1. All `Read references/*.md` paths in SKILL.md resolve to existing files
-#   2. plugin.json `skills` path is valid
-#   3. README and README_CN have matching phase counts
-#   4. No cross-references between reference files
-#   5. JSON files are valid
-#
-# Usage: bash scripts/gc/check-consistency.sh
-# Exit code: 0 = all checks pass, 1 = failures found
+# Knowledge-base and plugin bundle consistency checks for harness-init.
+# Run: bash scripts/gc/check-consistency.sh
 
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-SKILL_FILE="$REPO_ROOT/skills/harness-init/SKILL.md"
-REFS_DIR="$REPO_ROOT/skills/harness-init/references"
-PLUGIN_JSON="$REPO_ROOT/.claude-plugin/plugin.json"
+PLUGIN_ROOT="$REPO_ROOT/plugins/harness-init"
+SKILL_FILE="$PLUGIN_ROOT/skills/harness-init/SKILL.md"
+REFS_DIR="$PLUGIN_ROOT/skills/harness-init/references"
+PLUGIN_JSON="$PLUGIN_ROOT/.codex-plugin/plugin.json"
+MARKETPLACE_JSON="$REPO_ROOT/.agents/plugins/marketplace.json"
 README="$REPO_ROOT/README.md"
 README_CN="$REPO_ROOT/README_CN.md"
-
+LAYERS_DOC="$REPO_ROOT/docs/architecture/LAYERS.md"
+GC_REF="$REFS_DIR/gc-patterns.md"
+MIGRATION_REF="$REFS_DIR/migration-playbook.md"
+PACKS_REF="$REFS_DIR/capability-packs.md"
+TOOL_ROUTING="$REFS_DIR/tool-routing.md"
 errors=0
+
+fail() {
+  echo "  FAIL: $1"
+  errors=$((errors + 1))
+}
+
+ok() {
+  echo "  OK: $1"
+}
+
+trim() {
+  printf '%s' "$1" | tr -d '[:space:]'
+}
 
 echo "=== harness-init consistency check ==="
 echo ""
 
-# --- Check 1: SKILL.md reference paths ---
 echo "Check 1: SKILL.md reference paths"
-if [ -f "$SKILL_FILE" ]; then
-  # Extract all `Read references/...` or `references/...md` paths from SKILL.md
-  refs=$(sed -n 's/.*\(references\/[a-zA-Z0-9_-]*\.md\).*/\1/p' "$SKILL_FILE" | sort -u || true)
-  check1_errors=0
-  if [ -n "$refs" ]; then
-    for ref in $refs; do
-      full_path="$REPO_ROOT/skills/harness-init/$ref"
-      if [ ! -f "$full_path" ]; then
-        echo "  FAIL: SKILL.md references '$ref' but file does not exist"
-        echo "  FIX:  Create '$full_path' or remove the reference from SKILL.md"
-        check1_errors=$((check1_errors + 1))
-      fi
-    done
-    if [ $check1_errors -eq 0 ]; then
-      ref_count=$(echo "$refs" | wc -l)
-      echo "  OK: All $ref_count referenced files exist"
-    fi
-  else
-    echo "  WARN: No reference paths found in SKILL.md"
-  fi
-  errors=$((errors + check1_errors))
-else
-  echo "  FAIL: SKILL.md not found at $SKILL_FILE"
-  errors=$((errors + 1))
-fi
-echo ""
-
-# --- Check 2: plugin.json validity ---
-echo "Check 2: plugin.json validity"
-if [ -f "$PLUGIN_JSON" ]; then
-  # Validate JSON syntax
-  if python3 -m json.tool "$PLUGIN_JSON" > /dev/null 2>&1; then
-    echo "  OK: plugin.json is valid JSON"
-  else
-    echo "  FAIL: plugin.json is not valid JSON"
-    echo "  FIX:  Fix JSON syntax errors in $PLUGIN_JSON"
-    errors=$((errors + 1))
-  fi
-
-  # Check skills path
-  skills_path=$(python3 -c "import json; print(json.load(open('$PLUGIN_JSON')).get('skills', ''))" 2>/dev/null || echo "")
-  if [ -n "$skills_path" ]; then
-    resolved="$REPO_ROOT/${skills_path#./}"
-    if [ -d "$resolved" ]; then
-      echo "  OK: skills path '$skills_path' resolves to valid directory"
-    else
-      echo "  FAIL: skills path '$skills_path' does not resolve to a directory"
-      echo "  FIX:  Update 'skills' field in plugin.json to point to './skills/'"
-      errors=$((errors + 1))
-    fi
-  fi
-else
-  echo "  FAIL: plugin.json not found at $PLUGIN_JSON"
-  errors=$((errors + 1))
-fi
-echo ""
-
-# --- Check 3: marketplace.json validity ---
-echo "Check 3: marketplace.json validity"
-MARKETPLACE_JSON="$REPO_ROOT/.claude-plugin/marketplace.json"
-if [ -f "$MARKETPLACE_JSON" ]; then
-  if python3 -m json.tool "$MARKETPLACE_JSON" > /dev/null 2>&1; then
-    echo "  OK: marketplace.json is valid JSON"
-  else
-    echo "  FAIL: marketplace.json is not valid JSON"
-    echo "  FIX:  Fix JSON syntax errors in $MARKETPLACE_JSON"
-    errors=$((errors + 1))
-  fi
-else
-  echo "  WARN: marketplace.json not found (optional)"
-fi
-echo ""
-
-# --- Check 4: README phase count consistency ---
-echo "Check 4: README phase count consistency"
-if [ -f "$README" ] && [ -f "$README_CN" ]; then
-  # Count phase rows in the phase table (lines starting with | N.)
-  en_phases=$(grep -c '^|[[:space:]]*[0-9]' "$README" || echo 0)
-  cn_phases=$(grep -c '^|[[:space:]]*[0-9]' "$README_CN" || echo 0)
-  if [ "$en_phases" -eq "$cn_phases" ] && [ "$en_phases" -gt 0 ]; then
-    echo "  OK: Both READMEs have $en_phases phases"
-  elif [ "$en_phases" -eq 0 ] && [ "$cn_phases" -eq 0 ]; then
-    echo "  WARN: No phase tables detected in either README"
-  else
-    echo "  FAIL: README.md has $en_phases phases, README_CN.md has $cn_phases phases"
-    echo "  FIX:  Sync phase tables between README.md and README_CN.md"
-    errors=$((errors + 1))
-  fi
-else
-  echo "  WARN: One or both README files missing, skipping phase comparison"
-fi
-echo ""
-
-# --- Check 5: No cross-references between reference files ---
-# Exception: stack-routing.md is the cross-phase routing table — it may be
-# referenced by other files and may reference ci-templates.md for GC workflow.
-# See docs/golden-principles/REFERENCES.md "Exceptions" section.
-CROSS_REF_EXCEPTIONS="stack-routing.md ci-templates.md"
-
-echo "Check 5: Reference file independence"
-if [ -d "$REFS_DIR" ]; then
-  cross_refs=0
-  for ref_file in "$REFS_DIR"/*.md; do
-    basename=$(basename "$ref_file")
-    # Check if this file references other files in the same directory
-    other_refs=$(sed -n 's/.*\(references\/[a-zA-Z0-9_-]*\.md\).*/\1/p' "$ref_file" 2>/dev/null || true)
-    if [ -n "$other_refs" ]; then
-      for other in $other_refs; do
-        other_name=$(basename "$other")
-        if [ "$other_name" != "$basename" ]; then
-          # Skip known exceptions (cross-phase routing table)
-          is_exception=false
-          for exc in $CROSS_REF_EXCEPTIONS; do
-            if [ "$other_name" = "$exc" ] || [ "$basename" = "stack-routing.md" ]; then
-              is_exception=true
-              break
-            fi
-          done
-          if [ "$is_exception" = false ]; then
-            echo "  FAIL: $basename references $other_name (cross-reference)"
-            echo "  FIX:  Inline shared content or extract to a separate reference. See docs/golden-principles/REFERENCES.md"
-            cross_refs=$((cross_refs + 1))
-          fi
-        fi
-      done
+refs="$(sed -n 's/.*Read references\/\([A-Za-z0-9_-]*\.md\).*/\1/p' "$SKILL_FILE" | sort -u || true)"
+if [ -n "$refs" ]; then
+  local_errors=0
+  for ref in $refs; do
+    if [ ! -f "$REFS_DIR/$ref" ]; then
+      echo "  FAIL: SKILL.md references '$ref' but the file does not exist"
+      local_errors=$((local_errors + 1))
     fi
   done
-  if [ $cross_refs -eq 0 ]; then
-    ref_file_count=$(ls -1 "$REFS_DIR"/*.md 2>/dev/null | wc -l)
-    exc_count=$(echo $CROSS_REF_EXCEPTIONS | wc -w)
-    echo "  OK: All $ref_file_count reference files are independent ($exc_count known exceptions skipped)"
+  if [ "$local_errors" -eq 0 ]; then
+    ok "All $(trim "$(echo "$refs" | wc -l)") referenced files exist"
   fi
-  errors=$((errors + cross_refs))
+  errors=$((errors + local_errors))
 else
-  echo "  FAIL: References directory not found at $REFS_DIR"
-  errors=$((errors + 1))
+  fail "No reference paths found in SKILL.md"
 fi
 echo ""
 
-# --- Summary ---
+echo "Check 2: Codex plugin manifests"
+if python3 -m json.tool "$PLUGIN_JSON" >/dev/null 2>&1; then
+  ok "plugin.json is valid JSON"
+else
+  fail "plugin.json is not valid JSON"
+fi
+
+if python3 -m json.tool "$MARKETPLACE_JSON" >/dev/null 2>&1; then
+  ok "marketplace.json is valid JSON"
+else
+  fail "marketplace.json is not valid JSON"
+fi
+
+if grep -q '\[TODO:' "$PLUGIN_JSON" "$MARKETPLACE_JSON"; then
+  fail "plugin or marketplace manifest still contains TODO placeholders"
+else
+  ok "plugin and marketplace manifests have no TODO placeholders"
+fi
+
+if PLUGIN_JSON="$PLUGIN_JSON" MARKETPLACE_JSON="$MARKETPLACE_JSON" python3 - <<'PY'
+import json
+import os
+from pathlib import Path
+
+plugin = json.loads(Path(os.environ["PLUGIN_JSON"]).read_text())
+marketplace = json.loads(Path(os.environ["MARKETPLACE_JSON"]).read_text())
+
+assert plugin["name"] == "harness-init"
+assert plugin["version"] == "0.1.0"
+assert plugin["skills"] == "./skills/"
+assert any(
+    entry.get("name") == "harness-init"
+    and entry.get("source", {}).get("path") == "./plugins/harness-init"
+    for entry in marketplace.get("plugins", [])
+)
+PY
+then
+  ok "plugin manifest and marketplace entry match the shipped bundle"
+else
+  fail "plugin manifest or marketplace entry drifted"
+fi
+echo ""
+
+echo "Check 3: README mirror and language policy"
+if cmp -s "$README" "$README_CN"; then
+  ok "README.md and README_CN.md are exact mirrors"
+else
+  fail "README.md and README_CN.md diverge"
+fi
+
+if README_CN_PATH="$README_CN" python3 - <<'PY'
+import os
+import re
+from pathlib import Path
+
+text = Path(os.environ["README_CN_PATH"]).read_text()
+raise SystemExit(1 if re.search(r"[\u3400-\u9fff]", text) else 0)
+PY
+then
+  ok "README_CN.md remains English"
+else
+  fail "README_CN.md contains CJK characters"
+fi
+echo ""
+
+echo "Check 4: Reference file independence"
+CROSS_REF_EXCEPTIONS="stack-routing.md ci-templates.md"
+cross_refs=0
+for ref_file in "$REFS_DIR"/*.md; do
+  base="$(basename "$ref_file")"
+  other_refs="$(sed -n 's/.*references\/\([A-Za-z0-9_-]*\.md\).*/\1/p' "$ref_file" || true)"
+  if [ -n "$other_refs" ]; then
+    for other in $other_refs; do
+      if [ "$other" = "$base" ]; then
+        continue
+      fi
+      is_exception=false
+      for exc in $CROSS_REF_EXCEPTIONS; do
+        if [ "$base" = "$exc" ] || [ "$other" = "$exc" ]; then
+          is_exception=true
+          break
+        fi
+      done
+      if [ "$is_exception" = false ]; then
+        echo "  FAIL: $base references $other"
+        cross_refs=$((cross_refs + 1))
+      fi
+    done
+  fi
+done
+if [ "$cross_refs" -eq 0 ]; then
+  ok "All $(trim "$(find "$REFS_DIR" -name '*.md' | wc -l)") reference files are independent"
+fi
+errors=$((errors + cross_refs))
+echo ""
+
+echo "Check 5: Source-of-truth coverage"
+for pair in \
+  "$SKILL_FILE|migration map" \
+  "$SKILL_FILE|PRODUCT_SENSE.md" \
+  "$SKILL_FILE|verification status" \
+  "$SKILL_FILE|QUALITY_SCORE.md" \
+  "$SKILL_FILE|EVALS.md" \
+  "$SKILL_FILE|MERGE_POLICY.md" \
+  "$SKILL_FILE|OBSERVABILITY.md" \
+  "$SKILL_FILE|REVIEW_LOOPS.md" \
+  "$README|Codex Plugin Layout" \
+  "$README|Capability Packs" \
+  "$MIGRATION_REF|keep" \
+  "$MIGRATION_REF|deprecate" \
+  "$PACKS_REF|Runtime legibility" \
+  "$PACKS_REF|Evaluation harnesses" \
+  "$GC_REF|Knowledge freshness" \
+  "$GC_REF|Quality Score Update Workflow"; do
+  file="${pair%%|*}"
+  pattern="${pair#*|}"
+  if grep -q "$pattern" "$file"; then
+    ok "$(basename "$file") covers '$pattern'"
+  else
+    fail "$(basename "$file") is missing '$pattern'"
+  fi
+done
+echo ""
+
+echo "Check 6: Codex-only repo surface"
+if [ -e "$REPO_ROOT/CLAUDE.md" ] || [ -d "$REPO_ROOT/.claude-plugin" ]; then
+  fail "Claude-era repo artifacts still exist"
+else
+  ok "Claude-era repo artifacts are removed"
+fi
+
+for file in "$README" "$REPO_ROOT/INSTALL.md" "$REPO_ROOT/AGENTS.md" "$REPO_ROOT/ARCHITECTURE.md" "$REPO_ROOT/docs/SECURITY.md" "$TOOL_ROUTING"; do
+  if grep -Eq 'Claude|Cursor|\.claude-plugin|claude plugin' "$file"; then
+    fail "$(basename "$file") still mentions an unsupported host"
+  else
+    ok "$(basename "$file") stays Codex-only"
+  fi
+done
+
+if grep -q 'CLAUDE.md' "$LAYERS_DOC"; then
+  fail "docs/architecture/LAYERS.md still references CLAUDE.md"
+else
+  ok "docs/architecture/LAYERS.md no longer references CLAUDE.md"
+fi
+echo ""
+
 echo "=== Summary ==="
-if [ $errors -eq 0 ]; then
+if [ "$errors" -eq 0 ]; then
   echo "All checks passed."
   exit 0
-else
-  echo "$errors error(s) found."
-  exit 1
 fi
+
+echo "$errors error(s) found."
+exit 1

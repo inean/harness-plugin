@@ -1,101 +1,110 @@
 # Installation Guide
 
-Machine-readable installation instructions for AI agents and automation tools.
+Machine-readable installation instructions for the Codex plugin bundle shipped in this repo.
 
-## Quick Install
+## Supported Mode
 
-### Claude Code
+Only Codex is supported. The repo-local plugin bundle lives at:
 
-```bash
-claude plugin marketplace add https://github.com/Gizele1/harness-init.git
-claude plugin install harness-init@harness-init
-```
+- `plugins/harness-init/`
+- `.agents/plugins/marketplace.json`
 
-Restart Claude Code after installation. The `/harness-init` skill will be available globally.
+Non-Codex packaging is intentionally unsupported.
 
-### OpenAI Codex
+## Repo-Local Install
 
-```bash
-rm -rf /tmp/harness-init 2>/dev/null
-git clone --depth 1 https://github.com/Gizele1/harness-init.git /tmp/harness-init
-mkdir -p .agents/skills/harness-init/references
-cp /tmp/harness-init/skills/harness-init/SKILL.md .agents/skills/harness-init/
-cp /tmp/harness-init/skills/harness-init/references/*.md .agents/skills/harness-init/references/
-rm -rf /tmp/harness-init
-```
+The repo already contains the supported Codex plugin layout. Clone the repo and keep the marketplace file at `.agents/plugins/marketplace.json` so it points to `./plugins/harness-init`.
 
-### Cursor
+## Home-Local Install
+
+Copy the plugin bundle to your home plugin directory and seed or update a home marketplace entry:
 
 ```bash
-rm -rf /tmp/harness-init 2>/dev/null
-git clone --depth 1 https://github.com/Gizele1/harness-init.git /tmp/harness-init
-mkdir -p .cursor/rules/harness-init/references
-cp /tmp/harness-init/skills/harness-init/SKILL.md .cursor/rules/harness-init/
-cp /tmp/harness-init/skills/harness-init/references/*.md .cursor/rules/harness-init/references/
-rm -rf /tmp/harness-init
-```
+mkdir -p ~/plugins ~/.agents/plugins
+rm -rf ~/plugins/harness-init
+cp -R plugins/harness-init ~/plugins/harness-init
+python3 - <<'PY'
+import json
+from pathlib import Path
 
-### Manual (any agent)
+marketplace_path = Path.home() / ".agents" / "plugins" / "marketplace.json"
+marketplace_path.parent.mkdir(parents=True, exist_ok=True)
 
-```bash
-rm -rf /tmp/harness-init 2>/dev/null
-git clone --depth 1 https://github.com/Gizele1/harness-init.git /tmp/harness-init
-mkdir -p .claude/skills/harness-init/references
-cp /tmp/harness-init/skills/harness-init/SKILL.md .claude/skills/harness-init/
-cp /tmp/harness-init/skills/harness-init/references/*.md .claude/skills/harness-init/references/
-rm -rf /tmp/harness-init
+if marketplace_path.exists():
+    data = json.loads(marketplace_path.read_text())
+else:
+    data = {
+        "name": "local-codex-plugins",
+        "interface": {"displayName": "Local Codex Plugins"},
+        "plugins": [],
+    }
+
+entry = {
+    "name": "harness-init",
+    "source": {"source": "local", "path": "./plugins/harness-init"},
+    "policy": {"installation": "AVAILABLE", "authentication": "ON_INSTALL"},
+    "category": "Productivity",
+}
+
+data.setdefault("plugins", [])
+data["plugins"] = [plugin for plugin in data["plugins"] if plugin.get("name") != "harness-init"]
+data["plugins"].append(entry)
+
+marketplace_path.write_text(json.dumps(data, indent=2) + "\n")
+PY
 ```
 
 ## Verification
 
-After installation, verify the skill is available:
+After installation, verify the bundle is present and valid:
 
 ```bash
-# Check skill file exists (manual/Codex/Cursor installs)
-ls -la .claude/skills/harness-init/SKILL.md 2>/dev/null || \
-ls -la .agents/skills/harness-init/SKILL.md 2>/dev/null || \
-ls -la .cursor/rules/harness-init/SKILL.md 2>/dev/null
-
-# Check reference files exist
-ls .claude/skills/harness-init/references/*.md 2>/dev/null | wc -l
-# Expected: 11 reference files
-
-# For Claude Code plugin installs
-claude plugin list 2>/dev/null | grep harness-init
+python3 -m json.tool plugins/harness-init/.codex-plugin/plugin.json > /dev/null
+python3 -m json.tool .agents/plugins/marketplace.json > /dev/null
+ls -la plugins/harness-init/skills/harness-init/SKILL.md
+ls plugins/harness-init/skills/harness-init/references/*.md | wc -l
+# Expected: 13 reference files
 ```
 
 ## Uninstall
 
-### Claude Code plugin
+### Repo-local uninstall
 
 ```bash
-claude plugin uninstall harness-init@harness-init
-claude plugin marketplace remove harness-init
+rm -rf plugins/harness-init
+rm -rf .agents/plugins/marketplace.json
 ```
 
-### Manual installs
+### Home-local uninstall
 
 ```bash
-rm -rf .claude/skills/harness-init
-rm -rf .agents/skills/harness-init
-rm -rf .cursor/rules/harness-init
+rm -rf ~/plugins/harness-init
+python3 - <<'PY'
+import json
+from pathlib import Path
+
+marketplace_path = Path.home() / ".agents" / "plugins" / "marketplace.json"
+if marketplace_path.exists():
+    data = json.loads(marketplace_path.read_text())
+    data["plugins"] = [plugin for plugin in data.get("plugins", []) if plugin.get("name") != "harness-init"]
+    marketplace_path.write_text(json.dumps(data, indent=2) + "\n")
+PY
 ```
 
 ## Requirements
 
-- **Claude Code:** v2.1.0+ (plugin marketplace support)
-- **Git:** any recent version (for clone-based installs)
-- **No other dependencies**
+- **OpenAI Codex** with local plugin discovery
+- **Git** for clone-based installs or updates
+- **No runtime dependencies** inside this repo; the bundle is docs, templates, assets, and validation guidance
 
 ## Plugin Metadata
 
 | Field | Value |
 |-------|-------|
 | Name | harness-init |
-| Version | 1.1.0 |
-| Marketplace | `harness-init` |
-| Plugin ID | `harness-init@harness-init` |
-| Source | `https://github.com/Gizele1/harness-init.git` |
-| License | MIT |
-| Skill entry | `skills/harness-init/SKILL.md` |
-| Reference files | `skills/harness-init/references/*.md` (11 files) |
+| Version | 0.1.0 |
+| Host | OpenAI Codex |
+| Plugin manifest | `plugins/harness-init/.codex-plugin/plugin.json` |
+| Marketplace | `.agents/plugins/marketplace.json` |
+| Skill entry | `plugins/harness-init/skills/harness-init/SKILL.md` |
+| Reference files | `plugins/harness-init/skills/harness-init/references/*.md` (13 files) |

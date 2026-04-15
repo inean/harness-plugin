@@ -1,7 +1,7 @@
 # Documentation Consistency
 
 ## Rule
-README.md, README_CN.md, and SKILL.md must describe the same phases and capabilities — no drift.
+README.md, README_CN.md, and SKILL.md must describe the same phases and capabilities — no drift. In this repo, `README_CN.md` is intentionally an English mirror for compatibility and should keep the same structure as `README.md`.
 
 ## DO
 
@@ -31,7 +31,7 @@ README.md, README_CN.md, and SKILL.md must describe the same phases and capabili
 ```markdown
 <!-- Good: Both language READMEs have the same structure -->
 README.md    — English, 8 phases, same file structure diagram
-README_CN.md — Chinese, 8 phases, same file structure diagram
+README_CN.md — English mirror, 8 phases, same file structure diagram
 ```
 
 ## DON'T
@@ -43,5 +43,5 @@ README_CN.md — missing "Supported Stacks" section
 ```
 
 ## Exceptions
-- Minor wording differences between languages are expected
+- Minor wording differences are acceptable if the same behavior and structure remain visible
 - README may include additional context (install instructions, badges) not in SKILL.md

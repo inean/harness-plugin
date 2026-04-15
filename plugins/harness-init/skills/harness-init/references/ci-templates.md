@@ -1,6 +1,6 @@
 # CI Templates
 
-Starter templates for Phase 5. Adapt commands from `references/stack-routing.md` Phase 5 table.
+Starter templates for Phase 5. Adapt commands from the stack-routing decision tables and keep capability-pack jobs conditional on real commands existing.
 
 ## Command Validation
 
@@ -28,6 +28,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  knowledge-base:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: {setup-action}
+      - run: {install_command}
+      - run: {knowledge_base_command}
+
   lint:
     runs-on: ubuntu-latest
     steps:
@@ -54,15 +62,25 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
-    needs: [lint, typecheck, test]
+    needs: [knowledge-base, lint, typecheck, test]
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - uses: {setup-action}
       - run: {install_command}
       - run: {build_command}
+
+  evals:
+    if: {evals_enabled}
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: {setup-action}
+      - run: {install_command}
+      - run: {eval_command}
 ~~~
 
-**Notes:** Remove `typecheck` job if the stack doesn't have a separate typecheck step (Go, Rust). Remove `build` job if not a packaged/deployed artifact.
+**Notes:** Remove `typecheck` job if the stack doesn't have a separate typecheck step (Go, Rust). Remove `build` job if not a packaged/deployed artifact. Omit `evals` unless the evaluation harness pack exists. The `knowledge-base` job should stay lightweight and deterministic.
 
 ### Action Pinning
 
@@ -80,7 +98,13 @@ Common setup actions (pin to latest at time of use):
 default:
   image: {runtime-image}  # e.g., node:20, python:3.12, golang:1.22
 
-stages: [lint, typecheck, test, build]
+stages: [knowledge-base, lint, typecheck, test, build]
+
+knowledge-base:
+  stage: knowledge-base
+  script:
+    - {install_command}
+    - {knowledge_base_command}
 
 lint:
   stage: lint
@@ -107,6 +131,14 @@ build:
     - {build_command}
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
+
+evals:
+  stage: test
+  script:
+    - {install_command}
+    - {eval_command}
+  rules:
+    - if: $RUN_EVALS == "true"
 ~~~
 
 **Notes:** Remove `typecheck` stage if the stack doesn't have a separate typecheck step (Go, Rust).
@@ -116,7 +148,10 @@ build:
 If the repo doesn't use GitHub/GitLab, provide a Makefile so `make ci` runs all checks locally:
 
 ~~~makefile
-.PHONY: lint typecheck test build gc ci
+.PHONY: knowledge-base lint typecheck test build gc evals ci
+
+knowledge-base:
+	{knowledge_base_command}
 
 lint:
 	{lint_command}
@@ -133,7 +168,10 @@ build:
 gc:
 	{gc_command}
 
-ci: lint typecheck test build
+evals:
+	{eval_command}
+
+ci: knowledge-base lint typecheck test build
 ~~~
 
 ## GC Workflow (.github/workflows/gc.yml)
@@ -181,4 +219,4 @@ jobs:
             });
 ~~~
 
-**Notes:** GC workflow is report-only — never auto-fixes. The `workflow_dispatch` trigger allows manual runs. Create the `garbage-collection` label in your repo.
+**Notes:** GC workflow is report-only — never auto-fixes. The `workflow_dispatch` trigger allows manual runs. Create the `garbage-collection` label in your repo. If the quality score update is automated, it should run in a separate explicit workflow or behind an opt-in flag, not inside the scheduled GC scan.

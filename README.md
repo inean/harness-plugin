@@ -1,8 +1,10 @@
 # harness-init
 
-Bootstrap any repository with [OpenAI's harness engineering](https://openai.com/index/harness-engineering/) scaffolding for agent-first development.
+Bootstrap or migrate any repository toward an agent-first harness with a Codex plugin inspired by [OpenAI's harness engineering article](https://openai.com/index/harness-engineering/).
 
-> **Scope:** This is the **repo initialization subset** of harness engineering. Runtime feedback loops, agent review loops, and observability integration are out of scope.
+> **Scope:** `harness-init` is now a Codex-only plugin. This repo ships a real repo-local Codex plugin bundle under `plugins/harness-init/` plus a repo marketplace entry under `.agents/plugins/marketplace.json`. Non-Codex packaging is intentionally unsupported.
+
+`README_CN.md` is intentionally kept as an English mirror of this file for compatibility with existing consumers that already expect that filename.
 
 ## What It Does
 
@@ -10,228 +12,157 @@ Transforms a repository into an agent-ready environment through 8 phases:
 
 | Phase | What |
 |-------|------|
-| 0. Discovery | Detect stack, map architecture, identify layers, inject dynamic context |
-| 1. AGENTS.md | ~100-line orientation map (index, not encyclopedia) |
-| 2. docs/ | System of record: `architecture/LAYERS.md` + `golden-principles/` + `SECURITY.md` + `guides/` |
-| 3. Testing | Architecture boundary test with ratchet mechanism |
-| 4. Linting | Import restriction rules with remediation in error messages |
-| 5. CI | Parallel lint + typecheck + test + build pipeline |
-| 6. GC | Garbage collection scripts + scheduled weekly scan |
-| 7. Hooks | Pre-commit enforcement |
+| 0. Discovery | Detect the stack, choose bootstrap vs migrate, inventory legacy artifacts, and select capability packs |
+| 1. AGENTS.md | Create a short orientation map that points to the real system of record |
+| 2. Knowledge Base | Build `docs/` as the system of record, including architecture, design docs, product sense, security, and quality score artifacts |
+| 3. Testing | Add an architecture boundary test with a ratchet and migration-safe baseline handling |
+| 4. Linting | Enforce import boundaries and recurring taste invariants with remediation text |
+| 5. CI | Run knowledge-base checks plus lint, typecheck, test, build, and optional pack jobs |
+| 6. GC | Add doc-gardening, quality freshness, and entropy checks with a scheduled weekly scan |
+| 7. Hooks | Add lightweight local hooks and operational handoff notes when they help |
 
-## Core Principles (from OpenAI)
+The plugin supports both **Bootstrap** and **Migrate** modes. In Migrate mode it requires an explicit **migration map** before large edits so existing repos keep useful knowledge, history, and baselines.
 
-1. Engineers become environment designers — define constraints, not implementations
-2. Give agents a map, not an encyclopedia — AGENTS.md ~100 lines, progressive disclosure
-3. If agents can't see it, it doesn't exist — all knowledge machine-readable in repo
-4. Enforce architecture mechanically, not via markdown — linters and tests, not prose
-5. Boring technology wins — composable, stable, well-trained-on APIs
-6. Entropy management is garbage collection — periodic scans catch drift
-7. Throughput changes merge philosophy — minimal blocking gates
-8. Agent-to-agent code review — humans intervene only for judgment calls
+## Capability Packs
+
+The full article describes more than repo bootstrap. `harness-init` closes the biggest parity gaps with optional capability packs that scaffold docs, commands, validation hooks, and directory structure without making false claims about runtime automation.
+
+| Pack | What gets scaffolded | Honest boundary |
+|------|----------------------|-----------------|
+| Runtime legibility | `docs/RUNTIME_VALIDATION.md`, smoke commands, launch hooks, optional browser validation notes | The plugin cannot generically make every app bootable or CDP-driven |
+| Observability | `docs/OBSERVABILITY.md`, query contracts, `dashboards/`, optional smoke checks | The plugin cannot generically provision a full local observability stack |
+| Review loops | `docs/REVIEW_LOOPS.md`, feedback handling rules, PR iteration contract | The plugin cannot guarantee hosted reviewers or repo permissions |
+| Throughput merge policy | `docs/MERGE_POLICY.md`, blocking vs non-blocking gate rules, escalation path | The plugin should not impose risky merge behavior without explicit repo policy |
+| Evaluation harnesses | `docs/EVALS.md`, `evals/`, fixtures, scoring or smoke commands, CI hook | The plugin cannot invent realistic datasets or product-specific scoring semantics |
+
+## Codex Plugin Layout
+
+This repo now ships a repo-local Codex plugin bundle:
+
+```text
+.
+├── .agents/plugins/marketplace.json
+├── plugins/harness-init/
+│   ├── .codex-plugin/plugin.json
+│   ├── assets/
+│   └── skills/harness-init/
+│       ├── SKILL.md
+│       └── references/
+├── docs/
+├── scripts/
+└── .github/workflows/
+```
+
+The plugin bundle under `plugins/harness-init/` is the distributable artifact. Root docs and scripts describe and validate that bundle.
 
 ## Installation
 
-### Claude Code CLI (recommended)
+### Repo-local Codex plugin
 
-```bash
-claude plugin marketplace add https://github.com/Gizele1/harness-init.git
-claude plugin install harness-init@harness-init
-```
+This is the supported default. Clone the repo and open it in Codex. The repo already includes:
 
-Restart Claude Code. The `/harness-init` command and skill will be available in all projects.
+- `.agents/plugins/marketplace.json`
+- `plugins/harness-init/.codex-plugin/plugin.json`
 
-### Claude Code settings.json (alternative)
+Codex can use the repo-local marketplace entry that points to `./plugins/harness-init`.
 
-Add to your `~/.claude/settings.json`:
+### Home-local Codex plugin
 
-```json
-{
-  "extraKnownMarketplaces": {
-    "harness-init": {
-      "source": {
-        "source": "git",
-        "url": "https://github.com/Gizele1/harness-init.git"
-      }
-    }
-  },
-  "enabledPlugins": {
-    "harness-init@harness-init": true
-  }
-}
-```
-
-Then restart Claude Code.
-
-### Claude Code (manual copy)
-
-```bash
-# Clone and copy skill + references to project-level skills
-rm -rf /tmp/harness-init 2>/dev/null; git clone --depth 1 https://github.com/Gizele1/harness-init.git /tmp/harness-init
-mkdir -p .claude/skills/harness-init/references
-cp /tmp/harness-init/skills/harness-init/SKILL.md .claude/skills/harness-init/
-cp /tmp/harness-init/skills/harness-init/references/*.md .claude/skills/harness-init/references/
-rm -rf /tmp/harness-init
-```
-
-### OpenAI Codex
-
-```bash
-# Clone and copy to Codex skills directory
-rm -rf /tmp/harness-init 2>/dev/null; git clone --depth 1 https://github.com/Gizele1/harness-init.git /tmp/harness-init
-mkdir -p .agents/skills/harness-init/references
-cp /tmp/harness-init/skills/harness-init/SKILL.md .agents/skills/harness-init/
-cp /tmp/harness-init/skills/harness-init/references/*.md .agents/skills/harness-init/references/
-rm -rf /tmp/harness-init
-```
-
-### Cursor
-
-Copy `skills/harness-init/SKILL.md` and `skills/harness-init/references/` into your `.cursor/rules/harness-init/` directory, or inline the reference content into `.cursorrules`.
-
-### Manual
-
-Read `skills/harness-init/SKILL.md` and follow the phases manually in any AI coding assistant.
+If you want the plugin outside this repo, copy `plugins/harness-init/` to `~/plugins/harness-init` and add the equivalent entry to `~/.agents/plugins/marketplace.json`. `INSTALL.md` includes a machine-readable example.
 
 ## Usage
 
-In Claude Code:
+Once the Codex plugin is available, prompt it directly:
 
-```
-/harness-init          # Interactive — asks what to set up
-/harness-init full     # Full setup, all phases
-/harness-init 2        # Specific phase only
-/harness-init 3-4      # Phase range
-```
+- "Use harness-init to bootstrap this repo"
+- "Use harness-init in migrate mode for this existing service"
+- "Add the eval and observability packs to this harness"
+- "Make this repo agent-ready without breaking current CI"
 
-Or simply say:
+## What It Creates in Target Repos
 
-- "harness init this repo"
-- "make this repo agent-ready"
-- "set up architecture boundaries"
-
-## What Gets Created
-
-```
+```text
 project-root/
-├── AGENTS.md                          # ~100 lines, orientation map          [Required]
-├── ARCHITECTURE.md                    # Top-level domain map                 [Required]
+├── AGENTS.md
+├── ARCHITECTURE.md
 ├── docs/
-│   ├── architecture/
-│   │   └── LAYERS.md                  # Layer hierarchy + enforcement        [Required]
-│   ├── golden-principles/             # DO/DON'T patterns, 30-60 lines each [Required]
-│   ├── SECURITY.md                    # Auth, secrets, threat model          [Required]
-│   ├── guides/                        # Setup, testing, deployment           [Recommended]
-│   ├── exec-plans/                    # ExecPlan lifecycle                   [Recommended]
-│   │   ├── active/
-│   │   ├── completed/
-│   │   └── tech-debt-tracker.md
-│   ├── design-docs/                   # ADRs                                [Recommended]
-│   │   ├── index.md
+│   ├── architecture/LAYERS.md
+│   ├── design-docs/
+│   │   ├── index.md                  # includes verification status
 │   │   ├── core-beliefs.md
 │   │   └── {NNNN-title}.md
-│   ├── references/                    # External docs for LLMs              [Recommended]
-│   │   └── {library}-llms.txt
-│   ├── DESIGN.md                      # Design philosophy                   [Recommended]
-│   ├── PLANS.md                       # Exec-plans overview                 [Recommended]
-│   ├── QUALITY_SCORE.md               # Per-domain quality grades           [Recommended]
-│   ├── RELIABILITY.md                 # SLA, error budgets (services only)  [Conditional]
-│   ├── STACK.md                       # Stack conventions                   [Conditional]
-│   ├── product-specs/                 # Product specs                       [Conditional]
-│   └── generated/                     # Auto-generated docs                 [Conditional]
-│       └── {db-schema,api-spec}.md
-├── scripts/gc/                        # Garbage collection scripts
+│   ├── golden-principles/
+│   ├── SECURITY.md
+│   ├── QUALITY_SCORE.md
+│   ├── PRODUCT_SENSE.md
+│   ├── DESIGN.md
+│   ├── PLANS.md
+│   ├── exec-plans/
+│   │   ├── active/harness-migration-map.md
+│   │   ├── completed/
+│   │   └── tech-debt-tracker.md
+│   ├── guides/
+│   ├── references/
+│   ├── RELIABILITY.md                # conditional
+│   ├── STACK.md                      # conditional
+│   ├── EVALS.md                      # capability pack
+│   ├── MERGE_POLICY.md               # capability pack
+│   ├── OBSERVABILITY.md              # capability pack
+│   ├── REVIEW_LOOPS.md               # capability pack
+│   ├── RUNTIME_VALIDATION.md         # capability pack
+│   ├── product-specs/                # conditional
+│   └── generated/                    # conditional
+├── dashboards/                       # capability pack
+├── evals/                            # capability pack
+├── runbooks/                         # conditional
+├── scripts/gc/
 ├── tests/architecture/
-│   └── boundary.test.*                # Mechanical layer enforcement
 └── .github/workflows/
-    ├── ci.yml                         # lint + typecheck + test + build
-    └── gc.yml                         # Weekly entropy scan
 ```
 
-## File Structure Design
+## Migration Rules
 
-The file structure above is synthesized from multiple industry sources and designed with clear priority tiers.
+- Inventory before editing. Existing repos get a discovery-first migration pass, not blind regeneration.
+- Classify each discovered artifact as `keep`, `move`, `merge`, `generate`, `deprecate`, or `ignore`.
+- Preserve history with `git mv` whenever a file can relocate cleanly.
+- Merge overlapping docs when they contain useful knowledge; do not destructively overwrite them.
+- Create deprecation stubs only when humans, scripts, or links still need a redirect.
+- Establish baselines for current violations so CI gets tighter over time instead of breaking on day one.
 
-### Priority Tiers
+## Knowledge-Base and GC Checks
 
-| Tier | Meaning | When to create |
-|------|---------|---------------|
-| **Required** | Core scaffolding every agent-ready repo needs | Always — Phase 0-2 |
-| **Recommended** | High-value docs that most projects benefit from | Projects with >1 contributor or >3 months lifespan |
-| **Conditional** | Context-dependent — only when the project type demands it | Phase 0 discovery determines applicability |
+The article treats repository knowledge as mechanically validated. `harness-init` scaffolds checks for:
 
-### Design Decisions and Sources
+- reference integrity and cross-link validity
+- knowledge-base structure and freshness
+- design-doc verification status
+- quality score freshness or update cadence
+- architecture ratchets and legacy baselines
+- optional capability-pack checks when those packs are selected
 
-**AGENTS.md at repo root** — Industry standard adopted by 20,000+ repositories ([agents.md standard](https://agents-md.org/)). Serves as the single entry point for any AI agent. Kept to ~100 lines as an index, not an encyclopedia — following OpenAI's "give agents a map" principle.
-
-**ARCHITECTURE.md at repo root** — Top-level domain map visible without navigating into docs/. Points to `docs/architecture/LAYERS.md` for details. Follows progressive disclosure: root-level files are summaries, docs/ has depth.
-
-**docs/ as system of record** — Consolidates all project knowledge in one discoverable location. Agents scan `docs/` as their primary context source. This is directly from OpenAI's harness engineering: "if agents can't see it, it doesn't exist."
-
-**docs/architecture/LAYERS.md** — The definitive layer hierarchy, mechanically enforced by boundary tests (Phase 3) and linter rules (Phase 4). Not just documentation — it's the source of truth that tooling reads.
-
-**docs/golden-principles/** — 30-60 line DO/DON'T files per concern (imports, naming, error handling, testing). Short enough for agents to consume fully, specific enough to prevent drift. From OpenAI's "canonical patterns" concept.
-
-**docs/exec-plans/ (active/completed/)** — Dual-source design: directory lifecycle from the [Harness article](https://openai.com/index/harness-engineering/) (active → completed with retrospectives), single-file alternative from [OpenAI Cookbook](https://developers.openai.com/cookbook/articles/codex_exec_plans). Active plans move to completed/ when done, preserving context for downstream agents.
-
-**docs/design-docs/ with ADR format** — Architecture Decision Records following the `{NNNN-title}.md` convention ([ADR standard](https://adr.github.io/)). `core-beliefs.md` captures non-negotiable decisions that agents must never violate. `index.md` provides a navigable list.
-
-**docs/SECURITY.md** — Auth flows, secrets management, and threat model in one place. Agents working on auth-adjacent code need this context to avoid introducing vulnerabilities.
-
-**Conditional docs (RELIABILITY.md, STACK.md, product-specs/, generated/)** — Only created when Phase 0 discovery detects the relevant project type. RELIABILITY.md for services with SLAs. STACK.md replaces OpenAI's original FRONTEND.md with a stack-agnostic name. product-specs/ for product-driven projects. generated/ for auto-generated schemas.
-
-**QUALITY_SCORE.md under docs/, not root** — Keeps the repo root clean. Only AGENTS.md and ARCHITECTURE.md live at root because they're universal entry points. Everything else lives in docs/ for organization.
-
-### What Changed from OpenAI's Original
-
-| OpenAI Original | harness-init | Why |
-|----------------|-------------|-----|
-| FRONTEND.md | docs/STACK.md | Stack-agnostic — works for backend, mobile, etc. |
-| .agent/PLANS.md | docs/exec-plans/ or docs/PLANS.md | Directory lifecycle for multi-feature projects, single-file for simple ones |
-| Flat docs/ | Tiered docs/ with priority levels | Agents know what's essential vs optional |
-| No ADRs | docs/design-docs/ with ADR format | Captures architectural decisions for agent context |
-| No security doc | docs/SECURITY.md as required | Security context is non-optional for agent safety |
-
-## Context Strategy
-
-The skill distinguishes between two types of context:
-
-**Static context** (lives in repo, always available):
-- `AGENTS.md` — agent entry point, ~100 lines
-- `docs/architecture/LAYERS.md` — authoritative dependency hierarchy
-- `docs/golden-principles/*.md` — canonical patterns
-- Linter rules + boundary tests — mechanical enforcement
-
-**Dynamic context** (probed at each session start):
-- `git status` + `git log` — work progress
-- LSP diagnostics — code health
-- CI/CD status — pipeline health
-- Architecture boundary test — compliance check
+The scheduled GC workflow stays report-only. It should open issues or PRs, not silently mutate the branch.
 
 ## Supported Stacks
 
-Works with any stack. Layer templates provided for:
+The plugin is stack-agnostic and routes enforcement to the actual repository:
 
-- Web Frontend (React / Vue / Svelte)
-- Backend API (Express / FastAPI / Rails)
-- Full-Stack (Next.js / Nuxt / SvelteKit)
-- Monorepo (Turborepo / Nx)
+- Web frontend stacks such as React, Vue, and Svelte
+- Backend APIs such as FastAPI, Express, Rails, and similar service layouts
+- Full-stack frameworks such as Next.js, Nuxt, and SvelteKit
+- Monorepos such as Turborepo and Nx
+- Any other repo where the real dependency graph can be discovered from code and configs
 
-The skill reads actual import patterns to discover the real dependency graph rather than assuming a structure.
+## Honest Scope
 
-## Limitations
+`harness-init` covers the repository scaffolding and migration discipline part of harness engineering. It does not generically solve:
 
-This skill implements the **repo scaffolding** part of OpenAI's harness engineering methodology. It does **not** cover:
+- fully working local runtime harnesses for every app
+- end-to-end observability provisioning
+- hosted agent review infrastructure
+- automatic product-quality scoring with repo-specific semantics
+- repo-specific eval datasets, scorers, or dashboards without source material
 
-- Runtime legibility (starting apps, browser/CDP verification)
-- Observability integration (logs, metrics, traces queryable by agents)
-- Agent review loops (agent-to-agent PR review)
-- Automatic regression verification
-- PR feedback iteration loops
-- Quality scoring automation (template provided, scoring is manual)
-- Design docs versioning workflows
-
-These capabilities require runtime infrastructure beyond what a skill file can provide.
+For those areas, the plugin creates the docs, commands, contracts, directories, and validation hooks that let a repo-specific implementation grow safely.
 
 ## References
 

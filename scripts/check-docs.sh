@@ -1,11 +1,21 @@
 #!/usr/bin/env bash
-# Doc consistency checker for harness-init
+# Documentation and source-of-truth consistency checker for the Codex plugin bundle.
 # Run: bash scripts/check-docs.sh
-# Exit code: 0 = pass, 1 = failures found
 
-set -uo pipefail
+set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+PLUGIN_ROOT="$REPO_ROOT/plugins/harness-init"
+PLUGIN_JSON="$PLUGIN_ROOT/.codex-plugin/plugin.json"
+MARKETPLACE_JSON="$REPO_ROOT/.agents/plugins/marketplace.json"
+SKILL="$PLUGIN_ROOT/skills/harness-init/SKILL.md"
+REF_DIR="$PLUGIN_ROOT/skills/harness-init/references"
+README="$REPO_ROOT/README.md"
+README_CN="$REPO_ROOT/README_CN.md"
+INSTALL="$REPO_ROOT/INSTALL.md"
+AGENTS_DOC="$REPO_ROOT/AGENTS.md"
+LAYERS_DOC="$REPO_ROOT/docs/architecture/LAYERS.md"
+TOOL_ROUTING="$REF_DIR/tool-routing.md"
 ERRORS=0
 
 error() {
@@ -17,123 +27,215 @@ pass() {
   echo "OK:   $1"
 }
 
-# Pre-flight: warn if python3 is missing (version and JSON checks will degrade gracefully)
-if ! command -v python3 &>/dev/null; then
-  echo "WARN: python3 not found in PATH — version and JSON checks will be skipped"
-fi
+trim() {
+  printf '%s' "$1" | tr -d '[:space:]'
+}
 
-echo "=== harness-init doc consistency check ==="
+require_contains() {
+  local file="$1"
+  local pattern="$2"
+  local label="$3"
+  if grep -Eq "$pattern" "$file"; then
+    pass "$label"
+  else
+    error "$label missing in $(basename "$file")"
+  fi
+}
+
+require_absent() {
+  local file="$1"
+  local pattern="$2"
+  local label="$3"
+  if grep -Eq "$pattern" "$file"; then
+    error "$label still present in $(basename "$file")"
+  else
+    pass "$label removed from $(basename "$file")"
+  fi
+}
+
+echo "=== harness-init Codex plugin consistency check ==="
 echo ""
 
-# 1. Check required files exist
 echo "--- Required files ---"
-for f in AGENTS.md ARCHITECTURE.md CLAUDE.md INSTALL.md README.md README_CN.md \
-         .claude-plugin/plugin.json .claude-plugin/marketplace.json \
-         skills/harness-init/SKILL.md; do
+for f in \
+  AGENTS.md \
+  ARCHITECTURE.md \
+  INSTALL.md \
+  README.md \
+  README_CN.md \
+  docs/SECURITY.md \
+  .agents/plugins/marketplace.json \
+  plugins/harness-init/.codex-plugin/plugin.json \
+  plugins/harness-init/skills/harness-init/SKILL.md \
+  plugins/harness-init/skills/harness-init/references/migration-playbook.md \
+  plugins/harness-init/skills/harness-init/references/capability-packs.md; do
   if [ -f "$REPO_ROOT/$f" ]; then
     pass "$f exists"
   else
     error "$f is missing"
   fi
 done
-echo ""
 
-# 2. Check all reference files referenced by SKILL.md exist
-echo "--- Reference file integrity ---"
-SKILL="$REPO_ROOT/skills/harness-init/SKILL.md"
-REF_DIR="$REPO_ROOT/skills/harness-init/references"
-
-if [ -f "$SKILL" ]; then
-  # Extract Read references/*.md directives from SKILL.md (POSIX-compatible)
-  REFERENCED=$(sed -n 's/.*Read references\/\([a-z0-9-]*\.md\).*/\1/p' "$SKILL" | sort -u)
-  for ref in $REFERENCED; do
-    if [ -f "$REF_DIR/$ref" ]; then
-      pass "references/$ref exists (referenced by SKILL.md)"
-    else
-      error "references/$ref referenced in SKILL.md but file is missing"
-    fi
-  done
-
-  # Check for orphan reference files not referenced by SKILL.md
-  for ref_file in "$REF_DIR"/*.md; do
-    ref_name=$(basename "$ref_file")
-    if ! echo "$REFERENCED" | grep -qx "$ref_name"; then
-      echo "WARN: references/$ref_name exists but is not referenced in SKILL.md"
-    fi
-  done
-fi
-echo ""
-
-# 3. Version consistency
-echo "--- Version consistency ---"
-PLUGIN_VER=$(python3 -c "import json; print(json.load(open('$REPO_ROOT/.claude-plugin/plugin.json'))['version'])" 2>/dev/null || echo "PARSE_ERROR")
-MARKET_VER=$(python3 -c "import json; print(json.load(open('$REPO_ROOT/.claude-plugin/marketplace.json'))['plugins'][0]['version'])" 2>/dev/null || echo "PARSE_ERROR")
-SKILL_VER=$(sed -n 's/.*version:[[:space:]]*"*\([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\).*/\1/p' "$SKILL" 2>/dev/null | head -1)
-SKILL_VER=${SKILL_VER:-PARSE_ERROR}
-
-if [ "$PLUGIN_VER" = "$MARKET_VER" ] && [ "$PLUGIN_VER" = "$SKILL_VER" ]; then
-  pass "Version consistent across plugin.json, marketplace.json, SKILL.md ($PLUGIN_VER)"
+if [ -e "$REPO_ROOT/CLAUDE.md" ]; then
+  error "CLAUDE.md should not exist in the Codex-only repo"
 else
-  error "Version mismatch: plugin.json=$PLUGIN_VER marketplace.json=$MARKET_VER SKILL.md=$SKILL_VER"
+  pass "CLAUDE.md removed"
+fi
+
+if [ -d "$REPO_ROOT/.claude-plugin" ]; then
+  error ".claude-plugin should not exist in the Codex-only repo"
+else
+  pass ".claude-plugin removed"
 fi
 echo ""
 
-# 4. JSON validity
-echo "--- JSON validity ---"
-for jf in .claude-plugin/plugin.json .claude-plugin/marketplace.json; do
-  if python3 -c "import json; json.load(open('$REPO_ROOT/$jf'))" 2>/dev/null; then
-    pass "$jf is valid JSON"
+echo "--- Reference file integrity ---"
+REFERENCED="$(sed -n 's/.*Read references\/\([A-Za-z0-9_-]*\.md\).*/\1/p' "$SKILL" | sort -u)"
+for ref in $REFERENCED; do
+  if [ -f "$REF_DIR/$ref" ]; then
+    pass "references/$ref exists (referenced by SKILL.md)"
   else
-    error "$jf is invalid JSON"
+    error "references/$ref referenced in SKILL.md but file is missing"
   fi
 done
 echo ""
 
-# 5. README section parity (EN vs CN)
-echo "--- README section parity ---"
-EN_SECTIONS=$(grep -c '^## ' "$REPO_ROOT/README.md" 2>/dev/null || echo 0)
-CN_SECTIONS=$(grep -c '^## ' "$REPO_ROOT/README_CN.md" 2>/dev/null || echo 0)
+echo "--- Version consistency ---"
+PLUGIN_VER="$(python3 -c "import json; print(json.load(open('$PLUGIN_JSON'))['version'])" 2>/dev/null || echo "PARSE_ERROR")"
+SKILL_VER="$(sed -n 's/.*version:[[:space:]]*\"*\([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\).*/\1/p' "$SKILL" 2>/dev/null | head -1)"
+SKILL_VER="${SKILL_VER:-PARSE_ERROR}"
+INSTALL_VER="$(sed -n 's/| Version | \([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\) |/\1/p' "$INSTALL" | head -1)"
+INSTALL_VER="${INSTALL_VER:-PARSE_ERROR}"
 
-if [ "$EN_SECTIONS" = "$CN_SECTIONS" ]; then
-  pass "README.md and README_CN.md have same number of ## sections ($EN_SECTIONS)"
+if [ "$PLUGIN_VER" = "0.1.0" ] && [ "$PLUGIN_VER" = "$SKILL_VER" ] && [ "$PLUGIN_VER" = "$INSTALL_VER" ]; then
+  pass "Version normalized to 0.1.0 across plugin.json, SKILL.md, and INSTALL.md"
 else
-  error "Section count mismatch: README.md has $EN_SECTIONS, README_CN.md has $CN_SECTIONS"
-fi
-
-# Check phase table row count
-EN_PHASES=$(grep -c '| [0-7]\.' "$REPO_ROOT/README.md" 2>/dev/null || echo 0)
-CN_PHASES=$(grep -c '| [0-7]\.' "$REPO_ROOT/README_CN.md" 2>/dev/null || echo 0)
-
-if [ "$EN_PHASES" = "$CN_PHASES" ] && [ "$EN_PHASES" -ge 8 ]; then
-  pass "Phase table rows match ($EN_PHASES phases in both READMEs)"
-else
-  error "Phase table mismatch: README.md=$EN_PHASES README_CN.md=$CN_PHASES (expected 8)"
+  error "Version mismatch: plugin.json=$PLUGIN_VER SKILL.md=$SKILL_VER INSTALL.md=$INSTALL_VER"
 fi
 echo ""
 
-# 6. Reference file count
-echo "--- Reference file count ---"
-REF_COUNT=$(find "$REF_DIR" -name '*.md' -type f 2>/dev/null | wc -l)
-INSTALL_CLAIMS=$(sed -n 's/.*Expected:[[:space:]]*\([0-9][0-9]*\).*/\1/p' "$REPO_ROOT/INSTALL.md" 2>/dev/null | head -1)
-INSTALL_CLAIMS=${INSTALL_CLAIMS:-?}
+echo "--- JSON validity and plugin metadata ---"
+for jf in "$PLUGIN_JSON" "$MARKETPLACE_JSON"; do
+  if python3 -m json.tool "$jf" >/dev/null 2>&1; then
+    pass "${jf#$REPO_ROOT/} is valid JSON"
+  else
+    error "${jf#$REPO_ROOT/} is invalid JSON"
+  fi
+done
 
-if [ "$REF_COUNT" -ge 11 ]; then
-  pass "$REF_COUNT reference files found"
+if grep -q '\[TODO:' "$PLUGIN_JSON" "$MARKETPLACE_JSON"; then
+  error "Plugin or marketplace manifest still contains TODO placeholders"
 else
-  error "Only $REF_COUNT reference files found (expected >= 11)"
+  pass "Plugin and marketplace manifests have no TODO placeholders"
 fi
 
-if [ "$INSTALL_CLAIMS" != "?" ] && [ "$REF_COUNT" != "$INSTALL_CLAIMS" ]; then
+if REPO_ROOT="$REPO_ROOT" PLUGIN_ROOT="$PLUGIN_ROOT" PLUGIN_JSON="$PLUGIN_JSON" MARKETPLACE_JSON="$MARKETPLACE_JSON" python3 - <<'PY'
+import json
+import os
+from pathlib import Path
+
+repo_root = Path(os.environ["REPO_ROOT"])
+plugin_json = json.loads(Path(os.environ["PLUGIN_JSON"]).read_text())
+marketplace = json.loads(Path(os.environ["MARKETPLACE_JSON"]).read_text())
+
+skills_path = plugin_json.get("skills", "")
+asset_paths = [plugin_json.get("interface", {}).get("composerIcon"), plugin_json.get("interface", {}).get("logo")]
+asset_paths.extend(plugin_json.get("interface", {}).get("screenshots", []))
+
+assert skills_path == "./skills/"
+assert (Path(os.environ["PLUGIN_ROOT"]) / skills_path[2:]).is_dir()
+for asset in asset_paths:
+    assert asset and asset.startswith("./")
+    assert (Path(os.environ["PLUGIN_ROOT"]) / asset[2:]).is_file()
+
+plugins = marketplace.get("plugins", [])
+assert any(
+    plugin.get("name") == "harness-init"
+    and plugin.get("source", {}).get("path") == "./plugins/harness-init"
+    for plugin in plugins
+)
+PY
+then
+  pass "Plugin manifest paths and marketplace entry resolve correctly"
+else
+  error "Plugin manifest paths or marketplace entry are invalid"
+fi
+echo ""
+
+echo "--- README mirror checks ---"
+if cmp -s "$README" "$README_CN"; then
+  pass "README.md and README_CN.md are exact English mirrors"
+else
+  error "README.md and README_CN.md differ"
+fi
+
+if README_CN_PATH="$README_CN" python3 - <<'PY'
+import os
+import re
+from pathlib import Path
+
+text = Path(os.environ["README_CN_PATH"]).read_text()
+raise SystemExit(1 if re.search(r"[\u3400-\u9fff]", text) else 0)
+PY
+then
+  pass "README_CN.md stays in English"
+else
+  error "README_CN.md contains CJK characters"
+fi
+
+EN_PHASES="$(trim "$(grep -c '^| [0-7]\.' "$README" 2>/dev/null || echo 0)")"
+if [ "$EN_PHASES" = "8" ]; then
+  pass "README phase table has 8 phases"
+else
+  error "README phase table count is $EN_PHASES (expected 8)"
+fi
+echo ""
+
+echo "--- Skill and README parity ---"
+for file in "$SKILL" "$README"; do
+  require_contains "$file" 'Codex' "Codex support documented in $(basename "$file")"
+  require_contains "$file" 'Bootstrap' "bootstrap workflow documented in $(basename "$file")"
+  require_contains "$file" 'Migrate' "migrate workflow documented in $(basename "$file")"
+  require_contains "$file" 'migration map' "migration map documented in $(basename "$file")"
+  require_contains "$file" 'PRODUCT_SENSE\.md' "PRODUCT_SENSE.md documented in $(basename "$file")"
+  require_contains "$file" 'QUALITY_SCORE\.md' "QUALITY_SCORE.md documented in $(basename "$file")"
+  require_contains "$file" 'verification status' "design-doc verification status documented in $(basename "$file")"
+  require_contains "$file" 'Capability Packs|capability packs' "capability packs documented in $(basename "$file")"
+done
+echo ""
+
+echo "--- Installation and reference count ---"
+REF_COUNT="$(trim "$(find "$REF_DIR" -name '*.md' -type f | wc -l)")"
+INSTALL_CLAIMS="$(sed -n 's/.*Expected:[[:space:]]*\([0-9][0-9]*\).*/\1/p' "$INSTALL" | head -1)"
+INSTALL_CLAIMS="${INSTALL_CLAIMS:-?}"
+if [ "$REF_COUNT" = "13" ]; then
+  pass "13 reference files found"
+else
+  error "Found $REF_COUNT reference files (expected 13)"
+fi
+if [ "$INSTALL_CLAIMS" = "$REF_COUNT" ]; then
+  pass "INSTALL.md reference count matches ($REF_COUNT)"
+else
   error "INSTALL.md claims $INSTALL_CLAIMS reference files but found $REF_COUNT"
 fi
 echo ""
 
-# Summary
+echo "--- Codex-only wording ---"
+for file in "$README" "$INSTALL" "$AGENTS_DOC" "$REPO_ROOT/ARCHITECTURE.md" "$REPO_ROOT/docs/SECURITY.md" "$TOOL_ROUTING"; do
+  require_absent "$file" 'Claude|Cursor|\.claude-plugin|claude plugin' "unsupported host wording"
+done
+echo ""
+
+echo "--- Repo architecture wording ---"
+require_contains "$AGENTS_DOC" 'plugins/harness-init/.codex-plugin/plugin.json' 'AGENTS.md points to the Codex plugin manifest'
+require_contains "$LAYERS_DOC" '\.agents/plugins/marketplace\.json' 'LAYERS.md documents the Codex marketplace layer'
+echo ""
+
 echo "=== Summary ==="
 if [ "$ERRORS" -eq 0 ]; then
   echo "All checks passed."
   exit 0
-else
-  echo "$ERRORS check(s) failed."
-  exit 1
 fi
+
+echo "$ERRORS check(s) failed."
+exit 1

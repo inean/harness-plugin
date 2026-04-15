@@ -14,14 +14,14 @@ concurrency:
 
 jobs:
   validate-json:
-    name: Validate JSON
+    name: Validate Codex plugin JSON
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Validate plugin.json
-        run: python3 -m json.tool .claude-plugin/plugin.json > /dev/null
+        run: python3 -m json.tool plugins/harness-init/.codex-plugin/plugin.json > /dev/null
       - name: Validate marketplace.json
-        run: python3 -m json.tool .claude-plugin/marketplace.json > /dev/null
+        run: python3 -m json.tool .agents/plugins/marketplace.json > /dev/null
 
   check-docs:
     name: Doc consistency check
@@ -47,9 +47,10 @@ jobs:
       - name: Check required files
         run: |
           MISSING=0
-          for f in AGENTS.md ARCHITECTURE.md CLAUDE.md INSTALL.md README.md README_CN.md \
-                   .claude-plugin/plugin.json .claude-plugin/marketplace.json \
-                   skills/harness-init/SKILL.md; do
+          for f in AGENTS.md ARCHITECTURE.md INSTALL.md README.md README_CN.md \
+                   .agents/plugins/marketplace.json \
+                   plugins/harness-init/.codex-plugin/plugin.json \
+                   plugins/harness-init/skills/harness-init/SKILL.md; do
             if [ ! -f "$f" ]; then
               echo "MISSING: $f"
               MISSING=$((MISSING + 1))
