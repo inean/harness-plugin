@@ -2,7 +2,7 @@
 
 ## Scope
 
-harness-init is a documentation-first Codex plugin bundle. It contains no application code, no authentication flows, no secrets, and no network access.
+harness-plugin is a documentation-first Codex plugin bundle. It contains no application code, no authentication flows, no secrets, and no network access.
 
 ## What This Plugin Does NOT Do
 
@@ -13,7 +13,7 @@ harness-init is a documentation-first Codex plugin bundle. It contains no applic
 
 ## What It Generates
 
-When users run harness-init on their projects, it generates:
+When users run harness-plugin on their projects, it generates:
 
 - Documentation files (Markdown)
 - CI configuration (YAML)
@@ -33,4 +33,4 @@ When users run harness-init on their projects, it generates:
 - Never commit actual secrets, API keys, or tokens to this repo
 - Generated templates must use placeholder descriptions, not real credential names
 - `docs/SECURITY.md` template (in `references/security-template.md`) has exclusion rules — follow them
-- Review all changes to `.agents/plugins/marketplace.json` and `plugins/harness-init/.codex-plugin/plugin.json` carefully — these control Codex plugin discovery and metadata
+- Review all changes to `.agents/plugins/marketplace.json` and `plugins/harness-plugin/.codex-plugin/plugin.json` carefully — these control Codex plugin discovery and metadata

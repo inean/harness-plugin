@@ -5,13 +5,12 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-PLUGIN_ROOT="$REPO_ROOT/plugins/harness-init"
+PLUGIN_ROOT="$REPO_ROOT/plugins/harness-plugin"
 PLUGIN_JSON="$PLUGIN_ROOT/.codex-plugin/plugin.json"
 MARKETPLACE_JSON="$REPO_ROOT/.agents/plugins/marketplace.json"
-SKILL="$PLUGIN_ROOT/skills/harness-init/SKILL.md"
-REF_DIR="$PLUGIN_ROOT/skills/harness-init/references"
+SKILL="$PLUGIN_ROOT/skills/harness-plugin/SKILL.md"
+REF_DIR="$PLUGIN_ROOT/skills/harness-plugin/references"
 README="$REPO_ROOT/README.md"
-README_CN="$REPO_ROOT/README_CN.md"
 INSTALL="$REPO_ROOT/INSTALL.md"
 AGENTS_DOC="$REPO_ROOT/AGENTS.md"
 LAYERS_DOC="$REPO_ROOT/docs/architecture/LAYERS.md"
@@ -53,7 +52,7 @@ require_absent() {
   fi
 }
 
-echo "=== harness-init Codex plugin consistency check ==="
+echo "=== harness-plugin Codex plugin consistency check ==="
 echo ""
 
 echo "--- Required files ---"
@@ -62,13 +61,12 @@ for f in \
   ARCHITECTURE.md \
   INSTALL.md \
   README.md \
-  README_CN.md \
   docs/SECURITY.md \
   .agents/plugins/marketplace.json \
-  plugins/harness-init/.codex-plugin/plugin.json \
-  plugins/harness-init/skills/harness-init/SKILL.md \
-  plugins/harness-init/skills/harness-init/references/migration-playbook.md \
-  plugins/harness-init/skills/harness-init/references/capability-packs.md; do
+  plugins/harness-plugin/.codex-plugin/plugin.json \
+  plugins/harness-plugin/skills/harness-plugin/SKILL.md \
+  plugins/harness-plugin/skills/harness-plugin/references/migration-playbook.md \
+  plugins/harness-plugin/skills/harness-plugin/references/capability-packs.md; do
   if [ -f "$REPO_ROOT/$f" ]; then
     pass "$f exists"
   else
@@ -86,6 +84,12 @@ if [ -d "$REPO_ROOT/.claude-plugin" ]; then
   error ".claude-plugin should not exist in the Codex-only repo"
 else
   pass ".claude-plugin removed"
+fi
+
+if [ -e "$REPO_ROOT/README_CN.md" ]; then
+  error "README_CN.md should not exist after dropping duplicate language surfaces"
+else
+  pass "README_CN.md removed"
 fi
 echo ""
 
@@ -150,8 +154,8 @@ for asset in asset_paths:
 
 plugins = marketplace.get("plugins", [])
 assert any(
-    plugin.get("name") == "harness-init"
-    and plugin.get("source", {}).get("path") == "./plugins/harness-init"
+    plugin.get("name") == "harness-plugin"
+    and plugin.get("source", {}).get("path") == "./plugins/harness-plugin"
     for plugin in plugins
 )
 PY
@@ -162,27 +166,7 @@ else
 fi
 echo ""
 
-echo "--- README mirror checks ---"
-if cmp -s "$README" "$README_CN"; then
-  pass "README.md and README_CN.md are exact English mirrors"
-else
-  error "README.md and README_CN.md differ"
-fi
-
-if README_CN_PATH="$README_CN" python3 - <<'PY'
-import os
-import re
-from pathlib import Path
-
-text = Path(os.environ["README_CN_PATH"]).read_text()
-raise SystemExit(1 if re.search(r"[\u3400-\u9fff]", text) else 0)
-PY
-then
-  pass "README_CN.md stays in English"
-else
-  error "README_CN.md contains CJK characters"
-fi
-
+echo "--- README checks ---"
 EN_PHASES="$(trim "$(grep -c '^| [0-7]\.' "$README" 2>/dev/null || echo 0)")"
 if [ "$EN_PHASES" = "8" ]; then
   pass "README phase table has 8 phases"
@@ -227,8 +211,10 @@ done
 echo ""
 
 echo "--- Repo architecture wording ---"
-require_contains "$AGENTS_DOC" 'plugins/harness-init/.codex-plugin/plugin.json' 'AGENTS.md points to the Codex plugin manifest'
+require_contains "$AGENTS_DOC" 'plugins/harness-plugin/.codex-plugin/plugin.json' 'AGENTS.md points to the Codex plugin manifest'
 require_contains "$LAYERS_DOC" '\.agents/plugins/marketplace\.json' 'LAYERS.md documents the Codex marketplace layer'
+require_absent "$AGENTS_DOC" 'README_CN' 'README_CN references'
+require_absent "$LAYERS_DOC" 'README_CN' 'README_CN references'
 echo ""
 
 echo "=== Summary ==="

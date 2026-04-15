@@ -4,21 +4,21 @@
 
 ```text
 ┌─────────────────────────────────────────────┐
-│ Docs                                        │  README.md, README_CN.md, INSTALL.md,
+│ Docs                                        │  README.md, INSTALL.md,
 │                                             │  AGENTS.md, ARCHITECTURE.md, docs/**
 │  May reference: Marketplace, Manifest, Skill, References
 ├─────────────────────────────────────────────┤
 │ Marketplace                                 │  .agents/plugins/marketplace.json
 │  May reference: Plugin root path only
 ├─────────────────────────────────────────────┤
-│ Plugin Manifest                             │  plugins/harness-init/.codex-plugin/plugin.json
+│ Plugin Manifest                             │  plugins/harness-plugin/.codex-plugin/plugin.json
 │  May reference: Skill root and asset paths
 ├─────────────────────────────────────────────┤
-│ Skill                                       │  plugins/harness-init/skills/harness-init/SKILL.md
+│ Skill                                       │  plugins/harness-plugin/skills/harness-plugin/SKILL.md
 │  May reference: References
 ├─────────────────────────────────────────────┤
-│ References + Assets                         │  plugins/harness-init/skills/harness-init/references/*.md,
-│                                             │  plugins/harness-init/assets/*
+│ References + Assets                         │  plugins/harness-plugin/skills/harness-plugin/references/*.md,
+│                                             │  plugins/harness-plugin/assets/*
 │  May reference: nothing (standalone)
 ├─────────────────────────────────────────────┤
 │ Validation                                  │  scripts/, .github/workflows/
@@ -30,21 +30,21 @@ Behavioral truth flows from **Skill → References**. Marketplace and manifest f
 
 ## Layer Rules
 
-| Layer              | Path                                                             | Allowed Dependencies                        |
-|-------------------|------------------------------------------------------------------|---------------------------------------------|
-| Docs              | `*.md` (root), `docs/**`                                         | Marketplace, Manifest, Skill, References    |
-| Marketplace       | `.agents/plugins/marketplace.json`                               | Plugin root path only                       |
-| Plugin Manifest   | `plugins/harness-init/.codex-plugin/plugin.json`                 | `./skills/`, asset paths                    |
-| Skill             | `plugins/harness-init/skills/harness-init/SKILL.md`              | References only                             |
-| References/Assets | `plugins/harness-init/skills/harness-init/references/`, `assets/`| None — standalone templates and assets      |
-| Validation        | `scripts/`, `.github/workflows/`                                 | Read-only access to all above               |
+| Layer              | Path                                                                 | Allowed Dependencies                        |
+|-------------------|----------------------------------------------------------------------|---------------------------------------------|
+| Docs              | `*.md` (root), `docs/**`                                             | Marketplace, Manifest, Skill, References    |
+| Marketplace       | `.agents/plugins/marketplace.json`                                   | Plugin root path only                       |
+| Plugin Manifest   | `plugins/harness-plugin/.codex-plugin/plugin.json`                   | `./skills/`, asset paths                    |
+| Skill             | `plugins/harness-plugin/skills/harness-plugin/SKILL.md`              | References only                             |
+| References/Assets | `plugins/harness-plugin/skills/harness-plugin/references/`, `assets/`| None — standalone templates and assets      |
+| Validation        | `scripts/`, `.github/workflows/`                                     | Read-only access to all above               |
 
 ## What Counts as a Dependency
 
 In this repo, "dependency" means:
 
 - **File reference**: `Read references/foo.md` in SKILL.md → Skill depends on References
-- **Path reference**: `.agents/plugins/marketplace.json` source.path points to `./plugins/harness-init`
+- **Path reference**: `.agents/plugins/marketplace.json` source.path points to `./plugins/harness-plugin`
 - **Manifest reference**: plugin.json `"skills": "./skills/"` → Manifest depends on plugin skill directory
 - **Content sync**: README describes SKILL.md phases → Docs depend on Skill
 - **Read-only validation**: a shell script checks README or SKILL content → Validation depends on those files
@@ -55,11 +55,10 @@ A violation occurs when:
 
 1. SKILL.md references a file in `references/` that does not exist
 2. A reference file references another reference file (cross-dependency)
-3. README/README_CN describes a phase or feature not present in SKILL.md
-4. README_CN.md drifts from the English structure or stops being an English mirror
-5. `.agents/plugins/marketplace.json` does not point to `./plugins/harness-init`
-6. `plugins/harness-init/.codex-plugin/plugin.json` does not resolve its `skills` or asset paths
-7. Docs describe unsupported non-Codex packaging
+3. README describes a phase or feature not present in SKILL.md
+4. `.agents/plugins/marketplace.json` does not point to `./plugins/harness-plugin`
+5. `plugins/harness-plugin/.codex-plugin/plugin.json` does not resolve its `skills` or asset paths
+6. Docs describe duplicate or removed language-specific README surfaces
 
 ## Remediation
 
@@ -68,10 +67,9 @@ A violation occurs when:
 | SKILL.md references missing file | Create the referenced file in `references/`, or remove the reference |
 | Reference cross-dependency | Inline the shared content, or extract to a new reference both can use independently |
 | README drift from SKILL.md | Update README to match current SKILL.md phases |
-| README_CN.md drift | Mirror the README structure in English again |
-| Marketplace path drift | Reset the entry path to `./plugins/harness-init` |
+| Marketplace path drift | Reset the entry path to `./plugins/harness-plugin` |
 | Invalid plugin manifest path | Fix the `skills` field or asset paths inside `plugin.json` |
-| Unsupported host docs | Remove non-Codex packaging language and align the docs to Codex only |
+| Duplicate language surface | Remove the extra README and keep the English source current |
 
 ## Enforcement
 

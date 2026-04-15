@@ -1,9 +1,9 @@
 ---
-name: harness-init
+name: harness-plugin
 description: Use when bootstrapping a new project, migrating an existing repo into an agent-first harness, or adding mechanical architecture and knowledge-base checks — produces AGENTS.md, migration maps, docs/ system of record, boundary tests, CI validation, and GC scripts
 triggers:
   - harness
-  - harness-init
+  - harness-plugin
   - harness engineering
   - agent-ready
   - architecture boundaries
@@ -17,7 +17,7 @@ metadata:
   version: "0.1.0"
 ---
 
-# Harness Init
+# Harness Plugin
 
 <Purpose>
 Bootstrap or migrate a repository toward OpenAI-style harness engineering: AGENTS.md orientation map, docs/ system of record, explicit migration maps, architectural layer enforcement, golden principles, garbage collection, and optional capability packs for runtime validation, observability, review loops, merge policy, and evaluation harnesses.
@@ -180,7 +180,7 @@ Delegate by intent — platform routes the call. `Read references/tool-routing.m
 
 <Examples>
 <Good>
-User: "harness-init this new Next.js project"
+User: "harness-plugin this new Next.js project"
 Agent: Runs Phase 0 discovery -> classifies repo as Bootstrap -> detects Next.js + TypeScript + ESLint -> selects the full-stack layer pattern -> scaffolds AGENTS/docs/boundaries -> offers runtime legibility and eval packs as optional follow-ups.
 Why good: Discovery first, honest about optional packs, adapts to actual stack.
 </Good>
@@ -192,7 +192,7 @@ Why good: Preserves useful knowledge, creates the migration map first, and avoid
 </Good>
 
 <Good>
-User: "harness-init 3-4"
+User: "harness-plugin 3-4"
 Agent: Runs Phase 0 (always) -> detects Go + golangci-lint -> inventories existing docs and CI -> reads stack-routing.md -> creates boundary test with `go/parser` + depguard config -> adds taste invariants that match current review feedback -> skips Phases 1-2, 5-7.
 Why good: Respects phase argument, still runs discovery, and scopes enforcement to the existing repo reality.
 </Good>
@@ -204,7 +204,7 @@ Why good: Closes the biggest parity gaps without falsely claiming full automatio
 </Good>
 
 <Bad>
-User: "harness-init"
+User: "harness-plugin"
 Agent: Immediately creates AGENTS.md with React/TypeScript template without reading the repo.
 Why bad: Skipped Phase 0 discovery. Assumed stack instead of detecting it.
 </Bad>
