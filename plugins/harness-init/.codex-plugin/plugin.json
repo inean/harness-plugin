@@ -1,0 +1,48 @@
+{
+  "name": "harness-init",
+  "version": "0.1.0",
+  "description": "Bootstrap or migrate repositories into a Codex-ready harness with migration maps, knowledge-base docs, boundary checks, and GC guidance",
+  "author": {
+    "name": "Gizele1",
+    "email": "opensource@gizele.dev",
+    "url": "https://github.com/Gizele1"
+  },
+  "homepage": "https://github.com/Gizele1/harness-init",
+  "repository": "https://github.com/Gizele1/harness-init",
+  "license": "MIT",
+  "keywords": [
+    "codex",
+    "plugin",
+    "harness-engineering",
+    "migration",
+    "agent-ready"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Harness Init",
+    "shortDescription": "Bootstrap or migrate a repository into a Codex-ready harness.",
+    "longDescription": "Scaffold a Codex plugin that creates migration maps, knowledge-base docs, architecture checks, and optional capability packs for agent-first repository work.",
+    "developerName": "Gizele1",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/Gizele1/harness-init",
+    "privacyPolicyURL": "https://github.com/Gizele1/harness-init",
+    "termsOfServiceURL": "https://github.com/Gizele1/harness-init",
+    "defaultPrompt": [
+      "Bootstrap this repo into the harness-init architecture.",
+      "Migrate this existing repo into the harness-init layout safely.",
+      "Add eval and observability packs to this harness."
+    ],
+    "brandColor": "#0F766E",
+    "composerIcon": "./assets/icon.png",
+    "logo": "./assets/logo.png",
+    "screenshots": [
+      "./assets/screenshot1.png",
+      "./assets/screenshot2.png",
+      "./assets/screenshot3.png"
+    ]
+  }
+}

@@ -6,9 +6,14 @@
 |----------|------|------|
 | Orientation map | `AGENTS.md` | Agent entry point, ~100 lines index |
 | Layer rules | `docs/architecture/LAYERS.md` | Authoritative dependency hierarchy |
+| Product intent | `docs/PRODUCT_SENSE.md` | Stable view of users, journeys, and tradeoffs |
+| Design history | `docs/design-docs/index.md` + ADRs | Indexed decisions with verification status |
+| Quality ratchet | `docs/QUALITY_SCORE.md` | Domain/layer grades and update cadence |
 | Canonical patterns | `docs/golden-principles/*.md` | DO/DON'T, 30-60 lines each |
 | Dev guides | `docs/guides/*.md` | setup, testing, deployment |
+| Migration plan | `docs/exec-plans/active/harness-migration-map.md` | Explicit keep/move/merge/generate/deprecate/ignore plan |
 | ExecPlan standard | `docs/exec-plans/` or `PLANS.md` | Template for complex features |
+| Capability packs | `docs/{EVALS,OBSERVABILITY,REVIEW_LOOPS,RUNTIME_VALIDATION,MERGE_POLICY}.md` | Honest contracts for optional advanced workflows |
 | Constraints | Linter rules + boundary tests | Mechanical enforcement, not markdown |
 
 ## Dynamic Context (probed at each session start)
@@ -20,8 +25,12 @@
 | CI status | `gh run list --limit 3` (if available) | Is main branch healthy? |
 | Unfinished tasks | Session state directory or project task tracker | Resume from last session |
 | Architecture compliance | Run boundary test (if exists) | New layer violations? |
-| Documentation drift | Compare docs/ timestamps to src/ | Stale documentation? |
-| App observability | Application logs, metrics, tracing (if available) | Runtime errors, performance issues |
+| Migration progress | Diff migration-map classifications vs filesystem state | What is still legacy vs moved? |
+| Documentation drift | Compare docs/ timestamps to src/ and ownership metadata | Stale documentation? |
+| Quality freshness | Last update time in `QUALITY_SCORE.md` | Are grades drifting from reality? |
+| Review queue | PR comments / review artifacts (if available) | Feedback to promote into docs or tooling |
+| Runtime validation | App launch scripts, smoke commands, screenshots/videos (if available) | Can agents observe real behavior? |
+| App observability | Logs, metrics, traces, dashboards (if available) | Runtime errors, performance issues |
 
 ## The Distinction
 
@@ -40,4 +49,6 @@ Not all dynamic signals are always available. Handle missing tools:
 | CI status | No `gh` CLI / not GitHub | Check for CI config, skip |
 | Session state | No `.omc/state/` | Skip, note fresh session |
 | Boundary test | Not yet created | Note: will be created in Phase 3 |
+| Runtime validation | No app launch or browser tooling | Scaffold docs/contracts only, note unavailable |
 | App observability | No log/metrics access | Skip, note unavailable |
+| Review queue | No PR tooling or stored feedback | Scaffold review-loop docs only, note unavailable |

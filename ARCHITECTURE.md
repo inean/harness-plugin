@@ -1,45 +1,50 @@
 # Architecture
 
-harness-init is a pure documentation project structured as a Claude Code plugin. No app code, no runtime dependencies.
+harness-init is a documentation-first Codex plugin repository. The installable plugin bundle lives in `plugins/harness-init/`; root docs and scripts explain and validate that bundle.
 
 ## Domain Map
 
-```
+```text
 harness-init/
-├── .claude-plugin/          Plugin metadata (plugin.json, marketplace.json)
-├── skills/harness-init/     Skill definition + reference templates
+├── .agents/plugins/         Repo-local Codex marketplace metadata
+├── plugins/harness-init/    Installable Codex plugin bundle
+│   ├── .codex-plugin/       Plugin manifest
+│   ├── assets/              Plugin assets
+│   └── skills/harness-init/ Skill definition + reference templates
 ├── docs/                    Project documentation
 │   ├── architecture/        Layer rules and dependency constraints
 │   ├── golden-principles/   DO/DON'T patterns for skill authoring
 │   └── SECURITY.md          Secrets, exclusion rules
 ├── scripts/                 Consistency check scripts
-│   ├── check-docs.sh        Doc consistency checker
-│   └── gc/                  GC consistency checker
-└── *.md (root)              User-facing docs (README, INSTALL, etc.)
+└── *.md (root)              User-facing docs
 ```
 
 ## Layers
 
-```
-┌─────────────────────────────────┐
-│  Plugin Config (.claude-plugin/)│  marketplace.json, plugin.json
-├─────────────────────────────────┤
-│  Skill (skills/harness-init/)   │  SKILL.md — 8-phase execution logic
-├─────────────────────────────────┤
-│  References (references/)       │  11 template files, loaded on-demand
-├─────────────────────────────────┤
-│  Docs (README, INSTALL, etc.)   │  User-facing documentation
-├─────────────────────────────────┤
-│  CI (scripts/, .github/)        │  Validation and consistency checks
-└─────────────────────────────────┘
+```text
+┌────────────────────────────────────────┐
+│ Docs (README, INSTALL, AGENTS, etc.)  │  User-facing and maintainer docs
+├────────────────────────────────────────┤
+│ Marketplace (.agents/plugins/)        │  Repo-local Codex plugin entry
+├────────────────────────────────────────┤
+│ Plugin Manifest (.codex-plugin/)      │  Plugin metadata and interface
+├────────────────────────────────────────┤
+│ Skill (plugins/.../SKILL.md)          │  Source of truth for workflow behavior
+├────────────────────────────────────────┤
+│ References + Assets                   │  Templates and presentation assets
+├────────────────────────────────────────┤
+│ Validation (scripts/, .github/)       │  Read-only checks across all layers
+└────────────────────────────────────────┘
 ```
 
 ## Dependency rules
 
-- **Plugin Config** references Skill via `"skills": "./skills/"` — does not reference individual files
-- **Skill** references References via `Read references/*.md` directives — never inlines reference content
-- **Docs** describe Skill behavior — must stay in sync but never define behavior
-- **CI** validates all layers — reads but never modifies
+- **Docs** describe the Codex plugin and must stay in sync with the shipped bundle
+- **Marketplace** points to `./plugins/harness-init` and must not drift from the actual plugin path
+- **Plugin manifest** points to `./skills/` and the plugin assets it exposes
+- **Skill** references its `references/*.md` files and remains the source of truth
+- **References** stay standalone and do not depend on one another, except the documented cross-phase exceptions
+- **Validation** reads Docs, Marketplace, Manifest, Skill, References, and Assets to enforce consistency; it never defines product behavior
 
 See `docs/architecture/LAYERS.md` for full dependency rules and enforcement.
 
@@ -47,10 +52,10 @@ See `docs/architecture/LAYERS.md` for full dependency rules and enforcement.
 
 | File | Depends on | Depended on by |
 |------|-----------|----------------|
-| `plugin.json` | — | `marketplace.json`, Claude Code runtime |
-| `marketplace.json` | `plugin.json` (version) | `claude plugin marketplace add` |
-| `SKILL.md` | `references/*.md` (11 files) | Users, README, AGENTS.md |
+| `.agents/plugins/marketplace.json` | `plugins/harness-init/` path | Codex repo-local plugin discovery |
+| `plugins/harness-init/.codex-plugin/plugin.json` | `plugins/harness-init/skills/`, `plugins/harness-init/assets/` | Codex plugin runtime |
+| `plugins/harness-init/skills/harness-init/SKILL.md` | `references/*.md` (13 files) | Users, README, AGENTS.md |
 | `references/*.md` | — | `SKILL.md` Read directives |
 | `README.md` | `SKILL.md` (source of truth) | Users |
-| `README_CN.md` | `README.md` (must mirror) | Users |
-| `INSTALL.md` | `plugin.json` (version, name) | Users, agents |
+| `README_CN.md` | `README.md` (English mirror) | Users |
+| `INSTALL.md` | plugin manifest + marketplace paths | Users, agents |
