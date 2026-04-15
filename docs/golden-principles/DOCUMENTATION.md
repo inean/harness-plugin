@@ -1,7 +1,7 @@
 # Documentation Consistency
 
 ## Rule
-README.md and SKILL.md must describe the same phases and capabilities — no drift. This repo ships a single English README and should not maintain parallel language-specific copies.
+README.md and SKILL.md must agree on phases, scope, and canonical paths. README stays high-level; `SKILL.md` plus `references/*.md` hold the exact scaffolds, per-pack mechanics, and phase details. This repo ships a single English README and should not maintain parallel language-specific copies.
 
 ## DO
 
@@ -30,18 +30,19 @@ README.md and SKILL.md must describe the same phases and capabilities — no dri
 
 ```markdown
 <!-- Good: The human README and source-of-truth skill stay aligned -->
-README.md — English, 8 phases, same file structure diagram
-SKILL.md  — source of truth, same capabilities and phase names
+README.md — English, 8 phases, same capabilities, representative layout only
+SKILL.md  — source of truth, exact phase behavior and detailed scaffolds
 ```
 
 ## DON'T
 
 ```markdown
-<!-- Bad: One README has content the other lacks -->
-README.md — includes "Supported Stacks" section
-SKILL.md  — still missing the same capability in source-of-truth language
+<!-- Bad: README becomes a second implementation spec -->
+README.md — exact per-pack file tree that drifts from references
+SKILL.md  — different canonical paths and generated artifacts
 ```
 
 ## Exceptions
 - Minor wording differences are acceptable if the same behavior and structure remain visible
 - README may include additional context (install instructions, badges) not in SKILL.md
+- README may intentionally omit low-level pack internals when those details live in `SKILL.md` or `references/*.md`

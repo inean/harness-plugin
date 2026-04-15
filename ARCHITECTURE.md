@@ -47,7 +47,7 @@ harness-plugin/
 - **Plugin manifests** describe the same bundle and version across Codex-native and Claude-compatible surfaces
 - **Skill** references its `references/*.md` files and remains the source of truth
 - **References** stay standalone and do not depend on one another, except the documented cross-phase exceptions
-- **Validation** reads Docs, Marketplaces, Manifests, Skill, References, and Assets to enforce consistency; it never defines product behavior
+- **Validation** is split by intent: `scripts/check-docs.sh` owns bundle consistency and source-of-truth parity, while `scripts/gc/check-consistency.sh` owns drift- and entropy-oriented checks
 
 See `docs/architecture/LAYERS.md` for the full dependency rules and enforcement notes.
 
@@ -59,7 +59,7 @@ See `docs/architecture/LAYERS.md` for the full dependency rules and enforcement 
 | `.claude-plugin/marketplace.json` | `plugins/harness-plugin/` path | `claude plugin validate .` and other compatibility tooling |
 | `plugins/harness-plugin/.codex-plugin/plugin.json` | `plugins/harness-plugin/skills/`, `plugins/harness-plugin/assets/` | Codex plugin runtime |
 | `plugins/harness-plugin/.claude-plugin/plugin.json` | `plugins/harness-plugin/` bundle identity | Claude-compatible plugin validation |
-| `plugins/harness-plugin/skills/harness-plugin/SKILL.md` | `references/*.md` (15 files) | Users, README, AGENTS.md |
+| `plugins/harness-plugin/skills/harness-plugin/SKILL.md` | `references/*.md` | Users, README, AGENTS.md |
 | `references/*.md` | — | `SKILL.md` Read directives |
 | `README.md` | `SKILL.md` (source of truth) | Users |
 | `INSTALL.md` | plugin manifests + marketplace paths | Users, agents |

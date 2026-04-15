@@ -28,7 +28,7 @@
 └──────────────────────────────────────────────┘
 ```
 
-Behavioral truth flows from **Skill -> References**. Marketplace and manifest files describe how local tools discover and validate the bundle. Validation reads all layers but does not define them.
+Behavioral truth flows from **Skill -> References**. Marketplace and manifest files describe how local tools discover and validate the bundle. `README.md` stays a high-level overview of the bundle, not a second implementation spec. Validation reads all layers but does not define them.
 
 ## Layer Rules
 
@@ -57,7 +57,7 @@ A violation occurs when:
 
 1. SKILL.md references a file in `references/` that does not exist
 2. A reference file references another reference file (cross-dependency)
-3. README describes a phase or feature not present in SKILL.md
+3. README or companion docs describe a canonical path, phase, or pack behavior that conflicts with SKILL.md or its references
 4. A marketplace file does not point to `./plugins/harness-plugin`
 5. A plugin manifest drifts from the bundle identity or cannot resolve required paths
 6. Docs describe duplicate language surfaces or recreate parallel language-specific READMEs
@@ -75,6 +75,7 @@ A violation occurs when:
 
 ## Enforcement
 
-- **Automated:** `scripts/gc/check-consistency.sh` validates all rules above
-- **CI:** `.github/workflows/ci.yml` runs consistency checks on every push/PR
+- **Automated bundle checks:** `scripts/check-docs.sh` validates required files, manifests, and source-of-truth parity
+- **Automated drift checks:** `scripts/gc/check-consistency.sh` validates reference independence and entropy-oriented coverage
+- **CI:** `.github/workflows/ci.yml` runs both checks on every push/PR
 - **GC:** `.github/workflows/gc.yml` runs the weekly entropy scan

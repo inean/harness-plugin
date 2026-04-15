@@ -1,6 +1,6 @@
 ---
 name: harness-plugin
-description: Use when bootstrapping a new project, migrating an existing repo into an agent-first harness, or running a harness-init style proposal upgrade with migration maps, layered architecture docs, knowledge-base checks, and optional runtime and observability capability packs
+description: Use when bootstrapping a new project, migrating an existing repo into an agent-first harness, or running a harness-init style proposal upgrade with migration maps, layered architecture docs, knowledge-base checks, and optional runtime, observability, and multi-agent delivery capability packs
 triggers:
   - harness
   - harness-plugin
@@ -21,7 +21,7 @@ metadata:
 # Harness Plugin
 
 <Purpose>
-Bootstrap or migrate a repository toward OpenAI-style harness engineering: AGENTS.md orientation map, docs/ system of record, explicit migration maps, layered proposal architecture, knowledge-base freshness checks, and optional capability packs for runtime/UI validation, full observability, review loops, merge policy, and evaluation harnesses.
+Bootstrap or migrate a repository toward OpenAI-style harness engineering: AGENTS.md orientation map, docs/ system of record, explicit migration maps, layered proposal architecture, knowledge-base freshness checks, and optional capability packs for runtime/UI validation, full observability, review loops, multi-agent delivery, merge policy, and evaluation harnesses.
 
 This skill stays honest about generic automation. It can scaffold repository structure, migration plans, docs, contracts, validation hooks, and CI wiring. It cannot generically deliver a fully working local observability stack, autonomous PR review system, or end-to-end runtime harness without repo-specific infrastructure. When those capabilities matter, scaffold the pack, document the contract, wire the commands, and record what still needs human or repo-specific implementation.
 
@@ -38,6 +38,7 @@ AI agents can only work with what they can see. Without structured documentation
 - Migrating legacy docs, CI, or test harnesses into a structured knowledge base
 - Adding architectural layer boundaries to a codebase
 - Adding article-aligned capability packs without pretending they are already fully implemented
+- Adding a lean role split so multiple agents can work safely from shared requirements, design, and task artifacts
 - User says "harness", "harness-plugin", "harness-init", "make this agent-ready", or "set up architecture"
 - Before any major feature work in a repo that lacks AGENTS.md + docs/
 </Use_When>
@@ -76,6 +77,7 @@ AI agents can only work with what they can see. Without structured documentation
 - Use `git mv` for doc restructuring whenever possible to preserve history.
 - Never destructively overwrite curated docs, CI, schemas, runbooks, dashboards, or onboarding docs. Merge overlap when useful, baseline gaps first, and add deprecation stubs only when inbound references would otherwise break.
 - Make the stack-agnostic adaptation to the article explicit. If the repo cannot literally use `Types -> Config -> Repo -> Service -> Runtime -> UI`, document the mapping from the article's original vocabulary to the repo's actual folders and runtime model.
+- If the repo already uses DDD, ports and adapters, CQRS, event sourcing, or a shared-kernel layout, preserve that vocabulary and map it explicitly to the article model instead of forcing a rename-first refactor.
 - Cross-cutting concerns must enter through explicit **Providers** (auth, connectors, telemetry, feature flags, similar). Do not bless ad hoc shortcuts that bypass layer boundaries.
 - New lint rules warn first if pre-existing violations exist — don't break the build
 - Capability packs are opt-in. `Read references/capability-packs.md` and scaffold docs, commands, contracts, and validation hooks instead of claiming a pack is fully operational when it is not.
@@ -114,7 +116,7 @@ AI agents can only work with what they can see. Without structured documentation
    h. Identify explicit **Providers** for cross-cutting concerns such as auth, connectors, telemetry, and feature flags. If these concerns are currently ad hoc, record the bridge or migration plan.
    i. Inject dynamic context: git status, diagnostics, CI status, boundary or test health, doc freshness, runtime or UI validation signals, and observability signals if already present
    j. Inspect existing observability stack components. Decide whether each part should be **keep and document**, **bridge into the proposal architecture**, or **migrate in stages**.
-   k. Select capability packs based on repo needs: runtime/UI validation, full observability stack for agents, review loops, throughput merge policy, evaluation harnesses
+   k. Select capability packs based on repo needs: runtime/UI validation, full observability stack for agents, review loops, multi-agent delivery, throughput merge policy, evaluation harnesses
    l. Ask clarifying questions only when stack or migration risk is genuinely ambiguous
 
 2. **Phase 1 — AGENTS.md** (~100 lines, orientation map)
@@ -128,6 +130,7 @@ AI agents can only work with what they can see. Without structured documentation
    - `Read references/golden-principles-guide.md` for writing golden principles
    - `Read references/security-template.md` for `docs/SECURITY.md`
    - `Read references/exec-plan-template.md` for `docs/exec-plans/`
+   - `Read references/multi-agent-delivery.md` when the multi-agent delivery pack is selected or an existing role-based workflow is discovered
    - `Read references/observability-migration.md` when the observability pack is selected or existing observability tooling is discovered
    - `Read references/runtime-validation-workflow.md` when the runtime/UI validation pack is selected or browser validation already exists
    Required:
@@ -144,13 +147,16 @@ AI agents can only work with what they can see. Without structured documentation
    - Create: `docs/exec-plans/active/harness-migration-map.md` for migrate mode
    - Create: `docs/design-docs/` with `index.md` (ADR index + verification) and `core-beliefs.md` (non-negotiable decisions)
    - Create: `docs/references/` (external library docs reformatted for LLM consumption, for example `{library}-llms.txt`)
-   - Create: `docs/DESIGN.md`, `docs/PLANS.md`
+   - Create: `docs/DESIGN.md`, `docs/PLANS.md` as a lightweight overview/index for `docs/exec-plans/`
    Conditional (by project type):
    - `docs/RELIABILITY.md` — for services (SLA, error budgets, resilience patterns)
    - `docs/STACK.md` — stack-specific conventions or an explicit mapping from the article's original architecture to the repo's actual stack
    - `docs/product-specs/` — for product-driven projects
    - `docs/generated/` — auto-generated docs (db-schema.md, api-spec.md)
+   - `docs/MULTI_AGENT_DELIVERY.md`, `docs/development_process.md`, `docs/working_documentation.md`, `docs/ai/`, and `docs/business/INDEX.md` — when the multi-agent delivery pack is selected
    - `docs/MERGE_POLICY.md`, `docs/EVALS.md`, `docs/OBSERVABILITY.md`, `docs/REVIEW_LOOPS.md`, `docs/RUNTIME_VALIDATION.md`, `dashboards/`, `evals/`, `runbooks/` — when the corresponding capability pack is selected
+   - For the multi-agent delivery pack, scaffold a minimal execution layer: `docs/ai/README.md`, `docs/ai/master/AGENTS.md`, `docs/ai/planner/AGENTS.md`, `docs/ai/workers/AGENTS.md.example`, and shared work-item artifacts under `docs/exec-plans/active/{work-item}/` with `requirements.md`, `design.md`, and `tasks.md`, unless the migration map keeps a stronger existing structure
+   - For multi-agent delivery, keep workers self-contained: inline the most violated architecture rules in the worker template, require one task per worker session, and make `tasks.md` carry exact file paths, dependencies, and parallel-safe batches
    - For the observability pack, scaffold the article-aligned signal path (app emits logs + OTLP metrics + OTLP traces -> Vector -> Victoria Logs / Victoria Metrics / Victoria Traces -> LogQL / PromQL / TraceQL query surfaces) unless the migration map intentionally keeps or bridges existing tooling instead
    - For the runtime/UI validation pack, scaffold start and restart commands, browser or CDP contracts, before and after snapshot expectations, replayable journeys, and failure triage that links UI symptoms back to logs, metrics, and traces
    - For migrate mode, preserve useful source material with `git mv`, merge overlapping content, and only emit deprecation stubs when callers or humans still need redirects
@@ -178,7 +184,7 @@ AI agents can only work with what they can see. Without structured documentation
    - Adapt to stack — not every stack needs all 4 jobs (lint, typecheck, test, build)
    - Validate discovered commands before embedding in CI — reject shell metacharacters, stop and ask if suspicious
    - Add a knowledge-base validation job for docs freshness, structure, migration rule drift, and design-doc verification metadata
-   - Add optional jobs for selected capability packs (eval smoke runs, runtime validation, observability contract checks, review-queue checks) only when commands or contract checks exist
+   - Add optional jobs for selected capability packs (eval smoke runs, runtime validation, observability contract checks, delivery-contract checks, review-queue checks) only when commands or contract checks exist
    - If a capability pack is only scaffolded, CI should validate the contract and documentation, not pretend to boot infrastructure that is not actually available
 
 7. **Phase 6 — Garbage collection and doc gardening**
@@ -188,7 +194,7 @@ AI agents can only work with what they can see. Without structured documentation
    - Prioritize entropy scans over style scans: knowledge-base freshness, cross-links, ownership, migration-map drift, design-doc verification status staleness, deprecation stubs, architecture drift, and quality score staleness
    - Add a quality score update workflow: either an executable updater or an explicit manual-update contract with CI checks for freshness
    - Add stale-doc detection and product-sense drift checks. If the product changes but `PRODUCT_SENSE.md` does not, the GC story is incomplete.
-   - Add pack-specific GC checks when those packs exist: runtime contract freshness, observability contract completeness, dashboard or index drift, and troubleshooting guide freshness
+   - Add pack-specific GC checks when those packs exist: runtime contract freshness, observability contract completeness, multi-agent role/task drift, dashboard or index drift, and troubleshooting guide freshness
    - Single `gc` command + scheduled GitHub Action (weekly cron, report-only)
 
 8. **Phase 7 — Hooks and operational handoff** (optional)
@@ -196,6 +202,7 @@ AI agents can only work with what they can see. Without structured documentation
    - Phase 7 is optional — CI (Phase 5) is the authoritative gate
    - Add local hooks only for fast, deterministic checks
    - Record which capability packs are live, scaffolded, or deferred so downstream agents do not assume more automation than actually exists
+   - If the multi-agent delivery pack exists, expose the fastest entry path for Master, Planner, and Worker sessions in the handoff notes
    - If runtime/UI validation or observability packs exist, expose the fastest local validation command in the handoff notes
 </Steps>
 
@@ -239,6 +246,12 @@ Why good: Closes the biggest parity gaps without falsely claiming full automatio
 User: "use harness-init to migrate our Grafana/Loki/Tempo service"
 Agent: Runs Phase 0 -> inventories the current observability stack -> classifies Grafana dashboards as keep, Loki/Tempo ingestion as bridge, missing OTLP contracts as generate -> writes the migration map before large edits -> adds `docs/OBSERVABILITY.md`, local validation commands, signal naming guidance, and staged migration notes instead of forcing an immediate Vector + Victoria cutover.
 Why good: Treats migration as first-class, keeps useful telemetry assets, and makes staged bridging explicit.
+</Good>
+
+<Good>
+User: "make this repo safe for parallel backend and frontend agent work"
+Agent: Runs Phase 0 -> detects meaningful architecture docs and existing exec plans -> selects the multi-agent delivery pack -> scaffolds lean role docs under `docs/ai/`, shared `requirements.md`/`design.md`/`tasks.md` artifacts under `docs/exec-plans/active/{work-item}/`, and self-contained worker templates with inline rules -> keeps the pack status honest as `scaffolded` until the repo-specific rules are filled in.
+Why good: Adds the coordination layer that parallel workers need without forcing a heavyweight process onto the repo.
 </Good>
 
 <Bad>
@@ -317,7 +330,7 @@ project-root/
 │   ├── references/                    # External docs for LLMs              [Recommended]
 │   │   └── {library}-llms.txt
 │   ├── DESIGN.md                      # Design philosophy                   [Recommended]
-│   ├── PLANS.md                       # Exec-plans overview                 [Recommended]
+│   ├── PLANS.md                       # Overview/index for exec-plans      [Recommended]
 │   ├── PRODUCT_SENSE.md               # Durable product intent              [Required for product behavior]
 │   ├── RELIABILITY.md                 # SLA, error budgets (services)       [Conditional]
 │   ├── STACK.md                       # Stack conventions or layer mapping  [Conditional]

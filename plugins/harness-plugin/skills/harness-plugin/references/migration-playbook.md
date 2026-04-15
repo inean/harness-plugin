@@ -41,6 +41,28 @@ Every discovered artifact must receive exactly one primary classification:
 
 Use `bridge` for legacy observability stacks, partially compatible docs, or existing runtime tooling that should remain live while the repo converges on the harness structure.
 
+## Existing DDD / Hexagonal / Event-Sourced Repos
+
+If the repo already uses DDD, ports and adapters, CQRS, event sourcing, DI, shared kernels, event buses, command buses, or outbox patterns, migration mode should usually preserve the architecture and add an explicit mapping to the article model rather than force a structural rewrite.
+
+Typical classifications:
+
+| Existing artifact | Likely classification | Why |
+|------------------|-----------------------|-----|
+| `src/domain/`, `src/application/`, `src/shared_kernel/` | `keep` | Already expresses core domain boundaries well |
+| Existing ADRs or architecture docs | `merge` or `keep` | Usually stronger than generated generic docs |
+| Repository implementations, outbox publisher, event-store adapter | `keep` or `bridge` | Already valid IO boundaries; may only need explicit mapping docs |
+| DI container wiring | `keep` or `move` | Often valid as-is, sometimes only needs clearer location or naming |
+| Implicit cross-cutting helpers for auth, telemetry, or flags | `bridge` | Make the Provider boundary explicit without breaking runtime behavior |
+| Missing `docs/architecture/LAYERS.md` mapping | `generate` | Needed so agents can see the architecture without guessing |
+
+Rules:
+- Preserve ubiquitous language such as `aggregate`, `shared kernel`, `command handler`, `outbox`, and `event store`.
+- Add the article-layer mapping to docs before renaming directories.
+- Only rename or move architecture folders when the current structure is genuinely ambiguous or harmful.
+- If multiple valid concepts collapse into one article layer, document that many-to-one mapping explicitly instead of oversimplifying the codebase.
+- Baseline current import or layering violations before turning on hard enforcement.
+
 ## Decision Rules
 
 - Use `keep` when the artifact already serves as a trustworthy system-of-record surface.

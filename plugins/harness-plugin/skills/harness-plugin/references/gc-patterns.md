@@ -34,7 +34,7 @@ Entropy management — recurring scans that catch drift, not just style violatio
 - **Quality ratchet:** Has KNOWN_VIOLATIONS grown?
 - **Product-sense drift:** Has the product behavior changed without `PRODUCT_SENSE.md` or equivalent being refreshed?
 - **Migration-map drift:** Do files marked `move`, `merge`, `bridge`, or `deprecate` still match filesystem reality?
-- **Capability-pack drift:** Do `OBSERVABILITY.md` and `RUNTIME_VALIDATION.md` still match the commands, dashboards, and artifacts they describe?
+- **Capability-pack drift:** Do `MULTI_AGENT_DELIVERY.md`, `OBSERVABILITY.md`, and `RUNTIME_VALIDATION.md` still match the commands, role docs, dashboards, and artifacts they describe?
 
 **Prioritize entropy scans over style scans.** Style is linter territory.
 
@@ -46,6 +46,7 @@ At minimum, the GC story should verify:
 - `docs/design-docs/index.md` lists design docs and includes a verification status for each tracked design.
 - `docs/QUALITY_SCORE.md` includes a review cadence and a last-reviewed signal that has not gone stale.
 - `docs/PRODUCT_SENSE.md` or the chosen equivalent exists for repos with product behavior.
+- `docs/MULTI_AGENT_DELIVERY.md` documents the current role split and work-item path mapping when the pack is enabled.
 - Capability-pack docs expose `Status: live|scaffolded|deferred`.
 - Deprecated files, when retained, still point to the canonical replacement.
 
@@ -71,7 +72,7 @@ Recommended subcommands:
 - `gc:architecture` — boundary drift and forbidden edges
 - `gc:knowledge-base` — freshness, cross-links, ownership, verification status, migration-map drift
 - `gc:quality-score` — update or verify quality score freshness
-- `gc:pack:{name}` — optional checks for evals, observability, runtime validation, merge policy, or review loops
+- `gc:pack:{name}` — optional checks for multi-agent delivery, evals, observability, runtime validation, merge policy, or review loops
 
 ## Scheduled Execution
 
@@ -98,9 +99,16 @@ Quality scoring should be explicit, not magical:
 
 ## Capability Pack Guidance
 
-- Runtime/UI validation, observability, review loops, merge policy, and eval packs should each add their own read-only GC checks.
+- Multi-agent delivery, runtime/UI validation, observability, review loops, merge policy, and eval packs should each add their own read-only GC checks.
 - If the pack is only scaffolded, the GC check should verify docs/contracts/commands exist and clearly mark unimplemented pieces.
 - Do not fail CI on pack-specific runtime checks until the repository has real commands and stable infrastructure for them.
+
+### Multi-agent delivery checks
+- `docs/ai/README.md` and role docs still point to real work-item locations
+- `docs/business/INDEX.md` entries still resolve when Master uses selective loading
+- `tasks.md` files still carry file paths, dependencies, and parallel-batch metadata
+- Worker template validation commands still match repo reality
+- `docs/MULTI_AGENT_DELIVERY.md` still matches the actual role directories and handoff paths
 
 ### Runtime/UI validation checks
 - Start, restart, and smoke commands still exist

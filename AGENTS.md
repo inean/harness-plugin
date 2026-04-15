@@ -4,7 +4,7 @@
 
 ## What this is
 
-A documentation-first plugin repository that bootstraps or migrates agent-ready repos using OpenAI's harness engineering methodology. The distributable bundle lives under `plugins/harness-plugin/` and ships migration maps, proposal-architecture guidance, capability-pack references, CI templates, and GC checks for target repos.
+A documentation-first plugin repository that bootstraps or migrates agent-ready repos using OpenAI's harness engineering methodology. The distributable bundle lives under `plugins/harness-plugin/` and ships migration maps, proposal-architecture guidance, capability-pack references, including lean multi-agent delivery scaffolds, CI templates, and GC checks for target repos.
 
 ## Stack
 
@@ -56,6 +56,7 @@ A documentation-first plugin repository that bootstraps or migrates agent-ready 
 │                   ├── golden-principles-guide.md
 │                   ├── layer-templates.md
 │                   ├── migration-playbook.md
+│                   ├── multi-agent-delivery.md
 │                   ├── observability-migration.md
 │                   ├── runtime-validation-workflow.md
 │                   ├── security-template.md
@@ -111,6 +112,7 @@ claude plugin validate .
 | Layer rules | docs/architecture/LAYERS.md |
 | Modify the skill | plugins/harness-plugin/skills/harness-plugin/SKILL.md |
 | Add or edit a reference | plugins/harness-plugin/skills/harness-plugin/references/ |
+| Multi-agent delivery reference | plugins/harness-plugin/skills/harness-plugin/references/multi-agent-delivery.md |
 | Codex plugin manifest | plugins/harness-plugin/.codex-plugin/plugin.json |
 | Claude-compatible manifest | plugins/harness-plugin/.claude-plugin/plugin.json |
 | Marketplace entries | .agents/plugins/marketplace.json and .claude-plugin/marketplace.json |

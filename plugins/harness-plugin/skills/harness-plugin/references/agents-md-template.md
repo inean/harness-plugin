@@ -42,14 +42,24 @@ Dependency flows **downward only**. Never import upward.
 ARCHITECTURE.md                       Top-level domain map (root)
 docs/
 ├── architecture/                     Layer rules, dependency graph
+├── ai/                               Role-based multi-agent workflow (if enabled)
+│   ├── README.md
+│   ├── master/
+│   ├── planner/
+│   └── workers/
+├── business/INDEX.md                 Selective business-doc index (if enabled)
 ├── design-docs/                      ADR index + verification status
+├── development_process.md            Shared requirements/design/tasks flow (if enabled)
+├── exec-plans/                       Feature implementation plans
+│   └── active/harness-migration-map.md
+├── PLANS.md                          Exec-plan overview/index
 ├── golden-principles/                Canonical patterns (DO/DON'T examples)
+├── working_documentation.md          Non-blocking workflow policy (if enabled)
+├── MULTI_AGENT_DELIVERY.md           Multi-agent delivery contract (if enabled)
 ├── PRODUCT_SENSE.md                  Durable product intent and tradeoffs
 ├── QUALITY_SCORE.md                  Quality gaps and scoring cadence
 ├── SECURITY.md                       Auth, secrets, threat model
 ├── guides/                           Setup, testing, deployment how-tos
-├── exec-plans/                       Feature implementation plans
-│   └── active/harness-migration-map.md
 ├── EVALS.md                          Evaluation contract (if enabled)
 ├── OBSERVABILITY.md                  Logs/metrics/traces contract (if enabled)
 ├── REVIEW_LOOPS.md                   Review and feedback loop contract (if enabled)
@@ -63,6 +73,7 @@ docs/
 | Architecture overview | ARCHITECTURE.md (root)    |
 | Layer rules       | docs/architecture/LAYERS.md   |
 | Migration status  | docs/exec-plans/active/harness-migration-map.md |
+| Multi-agent workflow | docs/ai/README.md         |
 | {common task 1}   | {directory/file}              |
 | {common task 2}   | {directory/file}              |
 | {common task 3}   | {directory/file}              |

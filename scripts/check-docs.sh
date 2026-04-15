@@ -16,6 +16,9 @@ README="$REPO_ROOT/README.md"
 INSTALL="$REPO_ROOT/INSTALL.md"
 AGENTS_DOC="$REPO_ROOT/AGENTS.md"
 LAYERS_DOC="$REPO_ROOT/docs/architecture/LAYERS.md"
+AGENTS_TEMPLATE="$REF_DIR/agents-md-template.md"
+CONTEXT_REF="$REF_DIR/context-strategy.md"
+EXEC_PLAN_REF="$REF_DIR/exec-plan-template.md"
 ERRORS=0
 
 error() {
@@ -69,6 +72,7 @@ for f in \
   plugins/harness-plugin/.claude-plugin/plugin.json \
   plugins/harness-plugin/skills/harness-plugin/SKILL.md \
   plugins/harness-plugin/skills/harness-plugin/references/migration-playbook.md \
+  plugins/harness-plugin/skills/harness-plugin/references/multi-agent-delivery.md \
   plugins/harness-plugin/skills/harness-plugin/references/capability-packs.md \
   plugins/harness-plugin/skills/harness-plugin/references/observability-migration.md \
   plugins/harness-plugin/skills/harness-plugin/references/runtime-validation-workflow.md; do
@@ -184,8 +188,8 @@ else
 fi
 echo ""
 
-echo "--- Skill and README parity ---"
-for file in "$SKILL" "$README"; do
+echo "--- Skill source-of-truth coverage ---"
+for file in "$SKILL"; do
   require_contains "$file" 'Bootstrap' "bootstrap workflow documented in $(basename "$file")"
   require_contains "$file" 'Migration mode|Migrate mode|migrat' "migration workflow documented in $(basename "$file")"
   require_contains "$file" 'migration map' "migration map documented in $(basename "$file")"
@@ -196,30 +200,52 @@ for file in "$SKILL" "$README"; do
   require_contains "$file" 'QUALITY_SCORE\.md' "QUALITY_SCORE.md documented in $(basename "$file")"
   require_contains "$file" 'verification status' "design-doc verification status documented in $(basename "$file")"
   require_contains "$file" 'Capability Packs|capability packs' "capability packs documented in $(basename "$file")"
+  require_contains "$file" 'Multi-agent delivery|multi-agent delivery' "multi-agent delivery documented in $(basename "$file")"
+  require_contains "$file" 'MULTI_AGENT_DELIVERY\.md' "MULTI_AGENT_DELIVERY.md documented in $(basename "$file")"
+  require_contains "$file" 'Runtime/UI validation|runtime/UI validation' "runtime/UI validation documented in $(basename "$file")"
   require_contains "$file" 'OTLP' "OTLP path documented in $(basename "$file")"
   require_contains "$file" 'Vector' "Vector path documented in $(basename "$file")"
   require_contains "$file" 'Victoria Logs' "Victoria Logs documented in $(basename "$file")"
   require_contains "$file" 'LogQL' "LogQL documented in $(basename "$file")"
   require_contains "$file" 'PromQL' "PromQL documented in $(basename "$file")"
   require_contains "$file" 'TraceQL' "TraceQL documented in $(basename "$file")"
+done
+echo ""
+
+echo "--- README overview alignment ---"
+for file in "$README"; do
+  require_contains "$file" 'Bootstrap' "bootstrap workflow documented in $(basename "$file")"
+  require_contains "$file" 'Migration mode|Migrate mode|migrat' "migration workflow documented in $(basename "$file")"
+  require_contains "$file" 'migration map' "migration map documented in $(basename "$file")"
+  require_contains "$file" 'bridge' "bridge classification documented in $(basename "$file")"
+  require_contains "$file" 'Providers' "Provider model documented in $(basename "$file")"
+  require_contains "$file" 'Types[[:space:]]*->[[:space:]]*Config[[:space:]]*->[[:space:]]*Repo[[:space:]]*->[[:space:]]*Service[[:space:]]*->[[:space:]]*Runtime[[:space:]]*->[[:space:]]*UI' "article layer model documented in $(basename "$file")"
+  require_contains "$file" 'Capability Packs|capability packs' "capability packs documented in $(basename "$file")"
+  require_contains "$file" 'Multi-agent delivery|multi-agent delivery' "multi-agent delivery documented in $(basename "$file")"
   require_contains "$file" 'Runtime/UI validation|runtime/UI validation' "runtime/UI validation documented in $(basename "$file")"
 done
 echo ""
 
-echo "--- Installation and reference count ---"
+echo "--- Canonical path surfaces ---"
+require_contains "$README" 'docs/ai/' 'README documents docs/ai/ as the multi-agent role location'
+require_contains "$SKILL" 'docs/ai/' 'SKILL.md documents docs/ai/ as the multi-agent role location'
+require_contains "$AGENTS_TEMPLATE" 'docs/ai/README\.md' 'AGENTS template points to docs/ai/README.md'
+require_contains "$README" 'docs/PLANS\.md' 'README documents docs/PLANS.md as the planning overview'
+require_contains "$SKILL" 'docs/PLANS\.md' 'SKILL.md documents docs/PLANS.md as the planning overview'
+require_contains "$CONTEXT_REF" 'docs/PLANS\.md' 'context-strategy.md documents docs/PLANS.md as the planning overview'
+require_contains "$EXEC_PLAN_REF" 'docs/PLANS\.md' 'exec-plan-template.md documents docs/PLANS.md as the planning overview'
+require_absent "$EXEC_PLAN_REF" '\.agent/PLANS\.md' '.agent/PLANS.md alternatives'
+echo ""
+
+echo "--- Installation and reference inventory ---"
 REF_COUNT="$(trim "$(find "$REF_DIR" -name '*.md' -type f | wc -l)")"
-INSTALL_EXPECTED="$(sed -n 's/.*Expected:[[:space:]]*\([0-9][0-9]*\).*/\1/p' "$INSTALL" | head -1)"
-INSTALL_EXPECTED="${INSTALL_EXPECTED:-?}"
-if [ "$REF_COUNT" = "15" ]; then
-  pass "15 reference files found"
+if [ "$REF_COUNT" -gt 0 ]; then
+  pass "$REF_COUNT reference files found"
 else
-  error "Found $REF_COUNT reference files (expected 15)"
+  error "No reference files found"
 fi
-if [ "$INSTALL_EXPECTED" = "$REF_COUNT" ]; then
-  pass "INSTALL.md reference count matches ($REF_COUNT)"
-else
-  error "INSTALL.md claims $INSTALL_EXPECTED reference files but found $REF_COUNT"
-fi
+require_contains "$INSTALL" 'plugins/harness-plugin/skills/harness-plugin/references/\*\.md' 'INSTALL.md documents the reference inventory path'
+require_absent "$INSTALL" 'Expected:[[:space:]]*[0-9]+' 'Fixed reference-count expectations'
 require_contains "$INSTALL" 'claude plugin validate \.' 'INSTALL.md documents claude plugin validate .'
 echo ""
 

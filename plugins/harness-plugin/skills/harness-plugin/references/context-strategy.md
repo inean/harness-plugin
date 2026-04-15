@@ -6,14 +6,18 @@
 |----------|------|------|
 | Orientation map | `AGENTS.md` | Agent entry point, ~100 lines index |
 | Layer rules | `docs/architecture/LAYERS.md` | Authoritative dependency hierarchy |
+| Business index | `docs/business/INDEX.md` | Selective business-doc routing when multi-agent delivery is enabled |
+| Delivery process | `docs/development_process.md` | Shared requirements/design/tasks handoff contract when multi-agent delivery is enabled |
+| Working policy | `docs/working_documentation.md` | Non-blocking analysis and progress rules |
+| Multi-agent roles | `docs/ai/README.md`, `docs/ai/master/`, `docs/ai/planner/`, `docs/ai/workers/` | Role-local context boundaries when multi-agent delivery is enabled |
 | Product intent | `docs/PRODUCT_SENSE.md` | Stable view of users, journeys, and tradeoffs |
 | Design history | `docs/design-docs/index.md` + ADRs | Indexed decisions with verification status |
 | Quality ratchet | `docs/QUALITY_SCORE.md` | Domain/layer grades and update cadence |
 | Canonical patterns | `docs/golden-principles/*.md` | DO/DON'T, 30-60 lines each |
 | Dev guides | `docs/guides/*.md` | setup, testing, deployment |
 | Migration plan | `docs/exec-plans/active/harness-migration-map.md` | Explicit keep/move/merge/generate/bridge/deprecate/ignore plan |
-| ExecPlan standard | `docs/exec-plans/` or `PLANS.md` | Template for complex features |
-| Capability packs | `docs/{EVALS,OBSERVABILITY,REVIEW_LOOPS,RUNTIME_VALIDATION,MERGE_POLICY}.md` | Honest contracts for optional advanced workflows |
+| ExecPlan standard | `docs/exec-plans/` + optional `docs/PLANS.md` overview | Template for complex features |
+| Capability packs | `docs/{EVALS,MULTI_AGENT_DELIVERY,OBSERVABILITY,REVIEW_LOOPS,RUNTIME_VALIDATION,MERGE_POLICY}.md` | Honest contracts for optional advanced workflows |
 | Constraints | Linter rules + boundary tests | Mechanical enforcement, not markdown |
 
 ## Dynamic Context (probed at each session start)
@@ -21,6 +25,7 @@
 | Signal | Source | Role |
 |--------|--------|------|
 | Work progress | `git status` + `git log --oneline -10` | What is in flight, where we stopped |
+| Delivery handoff status | `docs/exec-plans/active/*/{requirements,design,tasks}.md` | Which work items are ready for Master, Planner, or parallel workers? |
 | Code health | LSP diagnostics / linter output | Issues to address first |
 | CI status | `gh run list --limit 3` (if available) | Is main branch healthy? |
 | Unfinished tasks | Session state directory or project task tracker | Resume from last session |
@@ -55,3 +60,4 @@ Not all dynamic signals are always available. Handle missing tools:
 | Workload replay | No replay tooling | Document the missing contract, note unavailable |
 | App observability | No log/metrics access | Skip or scaffold observability contract, note unavailable |
 | Review queue | No PR tooling or stored feedback | Scaffold review-loop docs only, note unavailable |
+| Multi-agent delivery | No role files or shared task docs | Fall back to `docs/exec-plans/` or `docs/PLANS.md`, note single-session mode |

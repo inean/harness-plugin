@@ -78,8 +78,7 @@ python3 -m json.tool .agents/plugins/marketplace.json > /dev/null
 python3 -m json.tool .claude-plugin/marketplace.json > /dev/null
 claude plugin validate .
 ls -la plugins/harness-plugin/skills/harness-plugin/SKILL.md
-ls plugins/harness-plugin/skills/harness-plugin/references/*.md | wc -l
-# Expected: 15 reference files
+find plugins/harness-plugin/skills/harness-plugin/references -name '*.md' -type f | sort
 ```
 
 ## Uninstall
@@ -127,4 +126,4 @@ PY
 | Codex marketplace | `.agents/plugins/marketplace.json` |
 | Claude-compatible marketplace | `.claude-plugin/marketplace.json` |
 | Skill entry | `plugins/harness-plugin/skills/harness-plugin/SKILL.md` |
-| Reference files | `plugins/harness-plugin/skills/harness-plugin/references/*.md` (15 files) |
+| Reference files | `plugins/harness-plugin/skills/harness-plugin/references/*.md` |

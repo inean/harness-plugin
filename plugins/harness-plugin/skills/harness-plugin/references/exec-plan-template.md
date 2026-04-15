@@ -1,27 +1,28 @@
-# ExecPlan Standard (docs/exec-plans/)
+# ExecPlan Standard (`docs/exec-plans/`)
 
-Two complementary sources:
-- **OpenAI Harness article** — `docs/exec-plans/` directory with lifecycle (active → completed)
-- **OpenAI Cookbook PLANS.md** — single-file ExecPlan format (self-contained living document)
+This plugin keeps checked-in planning artifacts under `docs/exec-plans/`. `docs/PLANS.md` is optional and works as an overview/index that points to the active and completed plans; it should not replace the plan files themselves.
 
 For complex features or significant refactors. Not needed for small changes.
 
-## Directory Structure (from Harness article)
+## Directory Structure
 
 ```
-docs/exec-plans/
-├── active/                # In-progress plans
-│   └── {feature-name}.md  # One plan per feature/refactor
-├── completed/             # Finished plans with retrospectives
-│   └── {feature-name}.md  # Preserved for downstream agent context
-└── tech-debt-tracker.md   # Known debt, prioritized (optional)
+docs/
+├── PLANS.md                   # Optional overview/index
+└── exec-plans/
+    ├── active/                # In-progress plans
+    │   ├── harness-migration-map.md
+    │   ├── {feature-name}.md  # One-file plan when a single document is enough
+    │   └── {work-item}/       # Multi-agent pack
+    │       ├── requirements.md
+    │       ├── design.md
+    │       └── tasks.md
+    ├── completed/             # Finished plans with retrospectives
+    │   └── {feature-name}.md  # Preserved for downstream agent context
+    └── tech-debt-tracker.md   # Known debt, prioritized (optional)
 ```
 
-Active plans move to `completed/` when done. Downstream agents can reason about prior decisions without human context.
-
-## Single-File Alternative
-
-For simpler projects, a single `PLANS.md` at repo root or `.agent/PLANS.md` works. The directory structure is preferred for repos with multiple concurrent features.
+Active plans move to `completed/` when done. Downstream agents can reason about prior decisions without human context. For simpler projects, keep a single plan file inside `docs/exec-plans/active/` instead of creating a second planning surface elsewhere.
 
 ## Core Requirements
 

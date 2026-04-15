@@ -46,6 +46,8 @@ Types -> Config -> Repo -> Service -> Runtime -> UI
 
 The plugin keeps stack-agnostic adaptations, but it requires the repo docs to show how the real folder structure maps back to that article model. Cross-cutting concerns such as auth, connectors, telemetry, and feature flags must enter through explicit **Providers**, not through ad hoc cross-domain imports.
 
+This is an overlay, not a replacement for healthy domain-driven designs. In repos using DDD, ports and adapters, CQRS, event sourcing, DI, shared kernels, command buses, event buses, and outbox patterns, the plugin should preserve the existing vocabulary and document how those concepts map onto the article layers instead of forcing a rename-first refactor.
+
 ## Capability Packs
 
 The article covers more than repo scaffolding. `harness-plugin` now exposes optional capability packs that scaffold docs, commands, contracts, migration guidance, and validation hooks without pretending every target repo already has the required infrastructure.
@@ -55,6 +57,7 @@ The article covers more than repo scaffolding. `harness-plugin` now exposes opti
 | Runtime/UI validation | `docs/RUNTIME_VALIDATION.md`, start/restart commands, browser or CDP contracts, snapshots, replay notes, smoke hooks | The plugin cannot generically make every app bootable or browser-driven |
 | Full observability stack for agents | `docs/OBSERVABILITY.md`, signal naming, validation commands, `dashboards/`, migration notes, local/dev topology docs | The plugin cannot generically provision every environment's telemetry stack |
 | Review loops | `docs/REVIEW_LOOPS.md`, feedback handling rules, PR intake workflow | The plugin cannot guarantee hosted reviewers or repo permissions |
+| Multi-agent delivery | `docs/MULTI_AGENT_DELIVERY.md`, `docs/development_process.md`, `docs/working_documentation.md`, `docs/ai/`, and shared requirements/design/tasks conventions | The plugin cannot invent the right worker rules, business taxonomy, or task decomposition for every repo |
 | Throughput merge policy | `docs/MERGE_POLICY.md`, gate policy, escalation rules | The plugin should not impose risky merge behavior without explicit repo policy |
 | Evaluation harnesses | `docs/EVALS.md`, `evals/`, fixtures, smoke/scoring hooks | The plugin cannot invent repo-specific datasets or scoring semantics |
 
@@ -90,6 +93,19 @@ The runtime/UI validation pack models the article's validation loop:
 - failure triage that links UI symptoms back to logs, metrics, and traces
 
 If a repo cannot provision browser automation generically, the plugin still scaffolds the commands, contracts, and artifact locations agents will need later.
+
+## Multi-Agent Delivery
+
+The multi-agent delivery pack adds a lean coordination layer for repos where multiple agents should work in parallel without drifting apart:
+
+- role-local session docs under `docs/ai/master/`, `docs/ai/planner/`, and `docs/ai/workers/`
+- shared work-item artifacts under `docs/exec-plans/active/{work-item}/requirements.md`, `design.md`, and `tasks.md`
+- `docs/PLANS.md` as an optional overview/index for the checked-in execution plans under `docs/exec-plans/`
+- worker templates with inline rules so implementation sessions do not reload the entire architecture corpus
+- dependency-aware task batches for parallel-safe execution
+- an "analysis informs, never blocks" workflow with task-checkbox progress tracking
+
+It stays optional and intentionally small. It should not force a heavyweight 10-agent operating system onto a repo where one or two sessions can safely hold the context.
 
 ## Knowledge Base and GC Story
 
@@ -134,8 +150,11 @@ Once the plugin is available, prompt it directly:
 - "Use harness-plugin in migration mode for this existing service"
 - "Use harness-init to migrate this repo into the harness proposal architecture"
 - "Add the runtime/UI validation and observability packs, but keep current telemetry where possible"
+- "Add the multi-agent delivery pack, but keep it lean and reuse docs/exec-plans for shared work items"
 
-## What It Creates in Target Repos
+## Representative Target Repo Scaffold
+
+The exact target-repo scaffold lives in `SKILL.md` and its phase references. At the README level, the important shape is one docs-centered system of record with optional packs layered onto it:
 
 ```text
 project-root/
@@ -143,38 +162,30 @@ project-root/
 ├── ARCHITECTURE.md
 ├── docs/
 │   ├── architecture/LAYERS.md
-│   ├── design-docs/
-│   │   ├── index.md                  # includes verification status
-│   │   ├── core-beliefs.md
-│   │   └── {NNNN-title}.md
 │   ├── golden-principles/
-│   ├── SECURITY.md
-│   ├── QUALITY_SCORE.md
+│   ├── design-docs/
 │   ├── PRODUCT_SENSE.md
-│   ├── DESIGN.md
-│   ├── PLANS.md
+│   ├── QUALITY_SCORE.md
+│   ├── SECURITY.md
 │   ├── exec-plans/
-│   │   ├── active/harness-migration-map.md
-│   │   ├── completed/
-│   │   └── tech-debt-tracker.md
-│   ├── guides/
-│   ├── references/
-│   ├── RELIABILITY.md                # conditional
-│   ├── STACK.md                      # conditional
-│   ├── EVALS.md                      # capability pack
-│   ├── MERGE_POLICY.md               # capability pack
-│   ├── OBSERVABILITY.md              # capability pack
-│   ├── REVIEW_LOOPS.md               # capability pack
-│   ├── RUNTIME_VALIDATION.md         # capability pack
-│   ├── product-specs/                # conditional
-│   └── generated/                    # conditional
-├── dashboards/                       # capability pack
-├── evals/                            # capability pack
-├── runbooks/                         # conditional
-├── scripts/gc/
-├── tests/architecture/
+│   │   ├── active/
+│   │   │   ├── harness-migration-map.md
+│   │   │   └── {work-item}/
+│   │   │       ├── requirements.md
+│   │   │       ├── design.md
+│   │   │       └── tasks.md
+│   │   └── completed/
+│   ├── PLANS.md                     # optional overview/index for docs/exec-plans/
+│   ├── ai/                          # multi-agent delivery pack
+│   ├── OBSERVABILITY.md             # optional capability pack
+│   ├── RUNTIME_VALIDATION.md        # optional capability pack
+│   └── ...
+├── dashboards/                      # optional capability pack
+├── evals/                           # optional capability pack
 └── .github/workflows/
 ```
+
+`docs/exec-plans/` is the canonical checked-in planning workspace. `docs/PLANS.md` is only an overview/index when a repo benefits from one.
 
 ## Migration Rules
 
@@ -204,6 +215,7 @@ The plugin remains stack-agnostic and routes enforcement to the actual repositor
 - hosted agent review infrastructure
 - automatic product-quality scoring with repo-specific semantics
 - repo-specific eval datasets, scorers, or dashboards without source material
+- repo-specific worker rules, business indexes, or task decompositions without source material
 
 For those areas, the plugin creates the docs, commands, contracts, directory structure, and validation hooks that let a repo-specific implementation grow safely.
 
