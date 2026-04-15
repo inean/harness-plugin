@@ -1,17 +1,16 @@
 #!/usr/bin/env bash
-# Knowledge-base and plugin bundle consistency checks for harness-init.
+# Knowledge-base and plugin bundle consistency checks for harness-plugin.
 # Run: bash scripts/gc/check-consistency.sh
 
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-PLUGIN_ROOT="$REPO_ROOT/plugins/harness-init"
-SKILL_FILE="$PLUGIN_ROOT/skills/harness-init/SKILL.md"
-REFS_DIR="$PLUGIN_ROOT/skills/harness-init/references"
+PLUGIN_ROOT="$REPO_ROOT/plugins/harness-plugin"
+SKILL_FILE="$PLUGIN_ROOT/skills/harness-plugin/SKILL.md"
+REFS_DIR="$PLUGIN_ROOT/skills/harness-plugin/references"
 PLUGIN_JSON="$PLUGIN_ROOT/.codex-plugin/plugin.json"
 MARKETPLACE_JSON="$REPO_ROOT/.agents/plugins/marketplace.json"
 README="$REPO_ROOT/README.md"
-README_CN="$REPO_ROOT/README_CN.md"
 LAYERS_DOC="$REPO_ROOT/docs/architecture/LAYERS.md"
 GC_REF="$REFS_DIR/gc-patterns.md"
 MIGRATION_REF="$REFS_DIR/migration-playbook.md"
@@ -32,7 +31,7 @@ trim() {
   printf '%s' "$1" | tr -d '[:space:]'
 }
 
-echo "=== harness-init consistency check ==="
+echo "=== harness-plugin consistency check ==="
 echo ""
 
 echo "Check 1: SKILL.md reference paths"
@@ -81,12 +80,12 @@ from pathlib import Path
 plugin = json.loads(Path(os.environ["PLUGIN_JSON"]).read_text())
 marketplace = json.loads(Path(os.environ["MARKETPLACE_JSON"]).read_text())
 
-assert plugin["name"] == "harness-init"
+assert plugin["name"] == "harness-plugin"
 assert plugin["version"] == "0.1.0"
 assert plugin["skills"] == "./skills/"
 assert any(
-    entry.get("name") == "harness-init"
-    and entry.get("source", {}).get("path") == "./plugins/harness-init"
+    entry.get("name") == "harness-plugin"
+    and entry.get("source", {}).get("path") == "./plugins/harness-plugin"
     for entry in marketplace.get("plugins", [])
 )
 PY
@@ -97,25 +96,17 @@ else
 fi
 echo ""
 
-echo "Check 3: README mirror and language policy"
-if cmp -s "$README" "$README_CN"; then
-  ok "README.md and README_CN.md are exact mirrors"
+echo "Check 3: README policy"
+if [ -f "$README" ]; then
+  ok "README.md exists"
 else
-  fail "README.md and README_CN.md diverge"
+  fail "README.md is missing"
 fi
 
-if README_CN_PATH="$README_CN" python3 - <<'PY'
-import os
-import re
-from pathlib import Path
-
-text = Path(os.environ["README_CN_PATH"]).read_text()
-raise SystemExit(1 if re.search(r"[\u3400-\u9fff]", text) else 0)
-PY
-then
-  ok "README_CN.md remains English"
+if [ -e "$REPO_ROOT/README_CN.md" ]; then
+  fail "README_CN.md should not exist after removing duplicate language surfaces"
 else
-  fail "README_CN.md contains CJK characters"
+  ok "README_CN.md is removed"
 fi
 echo ""
 
@@ -183,6 +174,12 @@ if [ -e "$REPO_ROOT/CLAUDE.md" ] || [ -d "$REPO_ROOT/.claude-plugin" ]; then
   fail "Claude-era repo artifacts still exist"
 else
   ok "Claude-era repo artifacts are removed"
+fi
+
+if grep -q 'README_CN' "$REPO_ROOT/AGENTS.md" "$REPO_ROOT/ARCHITECTURE.md" "$REPO_ROOT/docs/architecture/LAYERS.md" "$REPO_ROOT/docs/golden-principles/DOCUMENTATION.md"; then
+  fail "README_CN references still exist in repo docs"
+else
+  ok "README_CN references are removed from repo docs"
 fi
 
 for file in "$README" "$REPO_ROOT/INSTALL.md" "$REPO_ROOT/AGENTS.md" "$REPO_ROOT/ARCHITECTURE.md" "$REPO_ROOT/docs/SECURITY.md" "$TOOL_ROUTING"; do

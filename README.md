@@ -1,10 +1,8 @@
-# harness-init
+# harness-plugin
 
 Bootstrap or migrate any repository toward an agent-first harness with a Codex plugin inspired by [OpenAI's harness engineering article](https://openai.com/index/harness-engineering/).
 
-> **Scope:** `harness-init` is now a Codex-only plugin. This repo ships a real repo-local Codex plugin bundle under `plugins/harness-init/` plus a repo marketplace entry under `.agents/plugins/marketplace.json`. Non-Codex packaging is intentionally unsupported.
-
-`README_CN.md` is intentionally kept as an English mirror of this file for compatibility with existing consumers that already expect that filename.
+> **Scope:** `harness-plugin` is a Codex-only plugin. This repo ships a repo-local Codex plugin bundle under `plugins/harness-plugin/` plus a repo marketplace entry under `.agents/plugins/marketplace.json`. Non-Codex packaging is intentionally unsupported.
 
 ## What It Does
 
@@ -25,7 +23,7 @@ The plugin supports both **Bootstrap** and **Migrate** modes. In Migrate mode it
 
 ## Capability Packs
 
-The full article describes more than repo bootstrap. `harness-init` closes the biggest parity gaps with optional capability packs that scaffold docs, commands, validation hooks, and directory structure without making false claims about runtime automation.
+The full article describes more than repo bootstrap. `harness-plugin` closes the biggest parity gaps with optional capability packs that scaffold docs, commands, validation hooks, and directory structure without making false claims about runtime automation.
 
 | Pack | What gets scaffolded | Honest boundary |
 |------|----------------------|-----------------|
@@ -37,15 +35,15 @@ The full article describes more than repo bootstrap. `harness-init` closes the b
 
 ## Codex Plugin Layout
 
-This repo now ships a repo-local Codex plugin bundle:
+This repo ships a repo-local Codex plugin bundle:
 
 ```text
 .
 ├── .agents/plugins/marketplace.json
-├── plugins/harness-init/
+├── plugins/harness-plugin/
 │   ├── .codex-plugin/plugin.json
 │   ├── assets/
-│   └── skills/harness-init/
+│   └── skills/harness-plugin/
 │       ├── SKILL.md
 │       └── references/
 ├── docs/
@@ -53,7 +51,7 @@ This repo now ships a repo-local Codex plugin bundle:
 └── .github/workflows/
 ```
 
-The plugin bundle under `plugins/harness-init/` is the distributable artifact. Root docs and scripts describe and validate that bundle.
+The plugin bundle under `plugins/harness-plugin/` is the distributable artifact. Root docs and scripts describe and validate that bundle.
 
 ## Installation
 
@@ -62,20 +60,20 @@ The plugin bundle under `plugins/harness-init/` is the distributable artifact. R
 This is the supported default. Clone the repo and open it in Codex. The repo already includes:
 
 - `.agents/plugins/marketplace.json`
-- `plugins/harness-init/.codex-plugin/plugin.json`
+- `plugins/harness-plugin/.codex-plugin/plugin.json`
 
-Codex can use the repo-local marketplace entry that points to `./plugins/harness-init`.
+Codex can use the repo-local marketplace entry that points to `./plugins/harness-plugin`.
 
 ### Home-local Codex plugin
 
-If you want the plugin outside this repo, copy `plugins/harness-init/` to `~/plugins/harness-init` and add the equivalent entry to `~/.agents/plugins/marketplace.json`. `INSTALL.md` includes a machine-readable example.
+If you want the plugin outside this repo, copy `plugins/harness-plugin/` to `~/plugins/harness-plugin` and add the equivalent entry to `~/.agents/plugins/marketplace.json`. `INSTALL.md` includes a machine-readable example.
 
 ## Usage
 
 Once the Codex plugin is available, prompt it directly:
 
-- "Use harness-init to bootstrap this repo"
-- "Use harness-init in migrate mode for this existing service"
+- "Use harness-plugin to bootstrap this repo"
+- "Use harness-plugin in migrate mode for this existing service"
 - "Add the eval and observability packs to this harness"
 - "Make this repo agent-ready without breaking current CI"
 
@@ -131,7 +129,7 @@ project-root/
 
 ## Knowledge-Base and GC Checks
 
-The article treats repository knowledge as mechanically validated. `harness-init` scaffolds checks for:
+The article treats repository knowledge as mechanically validated. `harness-plugin` scaffolds checks for:
 
 - reference integrity and cross-link validity
 - knowledge-base structure and freshness
@@ -154,7 +152,7 @@ The plugin is stack-agnostic and routes enforcement to the actual repository:
 
 ## Honest Scope
 
-`harness-init` covers the repository scaffolding and migration discipline part of harness engineering. It does not generically solve:
+`harness-plugin` covers the repository scaffolding and migration discipline part of harness engineering. It does not generically solve:
 
 - fully working local runtime harnesses for every app
 - end-to-end observability provisioning
