@@ -15,9 +15,19 @@ The installable bundle lives at `plugins/harness-plugin/`.
 
 The repo already contains the supported local bundle layout. Clone the repo and keep the Codex marketplace file at `.agents/plugins/marketplace.json` so it points to `./plugins/harness-plugin`.
 
+The repo-local marketplace entry is set to `INSTALLED_BY_DEFAULT`, so Codex should auto-install the plugin for this repo the next time it loads the workspace. If Codex is already open, restart it to pick up the plugin.
+
+Repo-local discovery only works when this repository is an active Codex workspace root. If the app is focused on another workspace, or this repo is only the current thread cwd, Codex will not scan this repo's `.agents/plugins/marketplace.json`.
+
 ## Home-Local Codex Install
 
-Copy the plugin bundle to your home plugin directory and seed or update a home marketplace entry:
+If you want the plugin available regardless of which workspace is active, run the helper installer:
+
+```bash
+bash scripts/install-home-plugin.sh
+```
+
+Or copy the plugin bundle to your home plugin directory and seed or update a home marketplace entry manually:
 
 ```bash
 mkdir -p ~/plugins ~/.agents/plugins
@@ -42,7 +52,7 @@ else:
 entry = {
     "name": "harness-plugin",
     "source": {"source": "local", "path": "./plugins/harness-plugin"},
-    "policy": {"installation": "AVAILABLE", "authentication": "ON_INSTALL"},
+    "policy": {"installation": "INSTALLED_BY_DEFAULT", "authentication": "ON_INSTALL"},
     "category": "Productivity",
 }
 
@@ -53,6 +63,14 @@ data["plugins"].append(entry)
 marketplace_path.write_text(json.dumps(data, indent=2) + "\n")
 PY
 ```
+
+Restart Codex after a home-local install or marketplace change so the plugin is loaded into a new session.
+
+## Troubleshooting
+
+- If Codex does not detect the repo-local plugin, make sure this repository is opened as an active workspace root in the app, not just as a saved workspace or thread cwd.
+- If you want detection to be independent of the active workspace, install the plugin home-locally with `bash scripts/install-home-plugin.sh`.
+- After any repo-local or home-local marketplace change, restart Codex before checking whether the plugin is available.
 
 ## Verification
 

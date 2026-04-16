@@ -60,6 +60,7 @@ A documentation-first plugin repository that bootstraps or migrates agent-ready 
 │                   └── tool-routing.md
 ├── scripts/
 │   ├── check-docs.sh                  # Doc consistency checker (CI + local)
+│   ├── install-home-plugin.sh         # Home-local Codex install helper
 │   └── gc/
 │       └── check-consistency.sh       # GC consistency checker (CI + local)
 └── .github/workflows/

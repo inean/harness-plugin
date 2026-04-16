@@ -138,11 +138,11 @@ The bundle under `plugins/harness-plugin/` is the shipped artifact. Root docs an
 
 ## Installation
 
-The repo already contains the supported local bundle and Codex marketplace metadata. See [INSTALL.md](INSTALL.md) for repo-local install details, validation commands, and manifest paths.
+The repo already contains the supported local bundle and Codex marketplace metadata. Repo-local activation only works when this repository is opened as an active Codex workspace root. See [INSTALL.md](INSTALL.md) for repo-local install details, home-local installation, validation commands, and manifest paths.
 
 ## Usage
 
-Once the plugin is available, prompt it directly:
+After Codex reloads the marketplace, prompt it directly. If Codex was already open when the plugin was added or updated, restart it first:
 
 - "Use harness-plugin to bootstrap this repo"
 - "Use harness-plugin in migration mode for this existing service"
