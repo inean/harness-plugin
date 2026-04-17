@@ -17,6 +17,7 @@ In Migration mode, Phase 0 MUST inspect and classify these artifact families bef
 |--------|------------------|
 | Orientation | `AGENTS.md`, `CLAUDE.md`, `README*`, onboarding docs |
 | Knowledge base | `docs/`, ADRs, design docs, plans, runbooks |
+| Orchestration | backlog docs, session handoffs, delivery workflows, todo trackers, role prompts, `.agents/`, current-focus notes, work-item trees |
 | Security | threat models, auth docs, secret-handling docs, compliance notes |
 | Product context | specs, roadmap docs, user journeys, research summaries |
 | Generated artifacts | API specs, db schemas, client SDK docs, generated markdown |
@@ -33,13 +34,21 @@ Every discovered artifact must receive exactly one primary classification:
 |------|---------|----------------|
 | `keep` | Already matches the target architecture well enough | Leave in place, link from the new map |
 | `move` | Useful as-is but stored in the wrong place | Relocate with `git mv` |
-| `merge` | Useful, but overlaps with a new or better target artifact | Fold content into the canonical destination, then retire or stub the old file |
+| `merge` | Useful, but overlaps with a new or better target artifact | Fold content into the canonical destination, then remove or stub the old file |
 | `generate` | Missing artifact the harness needs | Create a new file or directory |
 | `bridge` | Keep the current implementation, but wrap or document how it connects to the proposal architecture | Add adapters, contracts, docs, or staged migration notes |
 | `deprecate` | Old artifact still needs a redirect path for humans or tooling | Replace with a short stub pointing to the new source of truth |
 | `ignore` | Out of scope, obsolete, or intentionally left alone | Do not edit, but note why |
 
 Use `bridge` for legacy observability stacks, partially compatible docs, or existing runtime tooling that should remain live while the repo converges on the harness structure.
+
+For orchestration artifacts, default bias is stricter:
+
+- if the file remains the canonical workflow, `move` or `merge` the harness onto it
+- if the new harness workflow becomes canonical, legacy orchestration files should usually become `merge`, `move`, or `deprecate`
+- avoid `keep` for overlapping backlog, handoff, or planning files unless the migration map explicitly records why that older surface remains canonical
+- if a legacy orchestration file mixes planning, handoff, workflow policy, validation, or historical ledger concerns, default it to `merge` and split those concerns into harness docs instead of preserving the overloaded file whole
+- if the repo is already under git and no concrete compatibility need remains, prefer removing retired legacy orchestration files after migration instead of keeping archives or redirects
 
 ## Existing DDD / Hexagonal / Event-Sourced Repos
 
@@ -62,10 +71,11 @@ Rules:
 - Only rename or move architecture folders when the current structure is genuinely ambiguous or harmful.
 - If multiple valid concepts collapse into one article layer, document that many-to-one mapping explicitly instead of oversimplifying the codebase.
 - Baseline current import or layering violations before turning on hard enforcement.
+- Do not preserve a legacy delivery workflow, backlog, or session-note system as a parallel default once the harness execution layer is introduced. Pick one canonical orchestration surface and migrate the rest.
 
 ## Decision Rules
 
-- Use `keep` when the artifact already serves as a trustworthy system-of-record surface.
+- Use `keep` when the artifact already serves as a trustworthy, single-purpose system-of-record surface.
 - Use `move` when the content is good and the problem is location or naming.
 - Use `merge` when the artifact has useful knowledge but should no longer be canonical on its own.
 - Use `generate` when the harness needs a new artifact that simply does not exist.
@@ -77,12 +87,16 @@ Rules:
 
 1. Preserve history with `git mv` whenever a file can simply relocate.
 2. Avoid destructive overwrites. When old and new content overlap, merge into the destination and preserve the strongest existing material.
-3. Create deprecation stubs only when humans, scripts, or links still need a redirect. Do not litter the repo with unnecessary tombstones.
-4. Keep generated artifacts if they are still authoritative; otherwise regenerate them into the new location and note the source command.
-5. Baseline legacy violations instead of turning on hard-fail enforcement immediately.
-6. Keep the migration map updated as classifications change.
-7. Never overwrite useful current docs without first merging or explicitly deprecating them.
-8. If the repo already has observability or runtime validation tooling, classify it first. Do not replace it blindly.
+3. In git repos, prefer clean-break removal for retired legacy docs once inbound references are updated.
+4. Create deprecation stubs only when humans, scripts, or links still need a redirect. Do not litter the repo with unnecessary tombstones.
+5. Keep generated artifacts if they are still authoritative; otherwise regenerate them into the new location and note the source command.
+6. Baseline legacy violations instead of turning on hard-fail enforcement immediately.
+7. Keep the migration map updated as classifications change.
+8. Never overwrite useful current docs without first merging or explicitly deprecating them.
+9. If the repo already has observability or runtime validation tooling, classify it first. Do not replace it blindly.
+10. If the repo already has planning, handoff, backlog, or role-workflow files, classify them first. The migration must either adopt them as canonical or retire them; do not leave duplicate workflow systems active.
+11. If a legacy orchestration file mixes planning, session notes, workflow rules, validation gates, or historical ledger content, split it by concern across the harness docs. Do not preserve the overloaded file as the canonical default.
+12. In git repos, do not keep compatibility archives or redirect stubs "just in case". If no concrete caller still needs the old path, remove it and rely on git history.
 
 ## Required Migration Map
 
@@ -113,6 +127,7 @@ Why the repo is being migrated and which harness capabilities are in scope.
 - Existing flaky tests:
 - Existing doc freshness gaps:
 - Existing verification-status gaps:
+- Existing orchestration duplicates:
 
 ## Risk Notes
 - Which changes are safe now
@@ -134,3 +149,29 @@ This file moved to `{new-path}` as part of the harness migration.
 
 Keep this stub until `{condition}` is no longer needed.
 ~~~
+
+## Orchestration Canonicalization Checklist
+
+Before calling a migration "done enough", answer these questions in the map:
+
+1. Which file is the canonical ongoing plan surface?
+2. Which file is the canonical session handoff surface?
+3. Which file is the canonical multi-agent or role workflow surface?
+4. Which work-item tree is canonical for requirements, design, and tasks?
+5. Which legacy orchestration files were removed versus explicitly redirected?
+
+Typical legacy candidates to inspect aggressively:
+
+- `docs/**/implementation-backlog*.md`
+- `docs/**/session-handoff*.md`
+- `docs/**/delivery-workflow*.md`
+- `docs/**/current-focus*.md`
+- `docs/**/roadmap*.md` when it mixes execution status and durable product direction
+- `.agents/`, `.claude/`, `.cursor/`, or similar role-orchestration directories
+- free-form `PLAN.md`, `STATUS.md`, `TODO.md`, `TASKS.md`, or `NOTES.md` files
+
+If multi-agent delivery is enabled and the repo already has ad hoc orchestration files, default action is:
+
+- `merge` or `move` when the legacy file has strong content that should survive
+- `deprecate` only when humans or tooling still need a redirect
+- removal when the file is stale, overloaded, or has no inbound references

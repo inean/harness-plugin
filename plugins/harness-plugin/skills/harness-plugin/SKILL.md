@@ -72,10 +72,14 @@ AI agents can only work with what they can see. Without structured documentation
 - **Argument parsing:** `full` = all phases. `N` = single phase. `N-M` = phase range. No argument = interactive (asks user what to set up). Phase 0 always runs regardless of argument.
 - Read before you write — match existing code style and patterns
 - Decide operating mode in Phase 0: **Bootstrap** for a mostly empty repo, **Migrate** for an existing repo with meaningful artifacts. `Read references/migration-playbook.md` when migration is possible.
+- When migration mode discovers legacy planning, handoff, backlog, role, or session-note files, `Read references/orchestration-migration.md` and canonicalize them before adding new harness orchestration surfaces.
 - For migrate mode, inventory current artifacts and classify each as **keep**, **move**, **merge**, **generate**, **bridge**, **deprecate**, or **ignore** before large edits.
 - For migrate mode, produce an explicit migration map in `docs/exec-plans/active/harness-migration-map.md` or an equivalent checked-in plan before sweeping file moves or rewrites.
 - Use `git mv` for doc restructuring whenever possible to preserve history.
 - Never destructively overwrite curated docs, CI, schemas, runbooks, dashboards, or onboarding docs. Merge overlap when useful, baseline gaps first, and add deprecation stubs only when inbound references would otherwise break.
+- Do not leave two active orchestration systems in place. If new harness planning or multi-agent docs overlap with legacy backlog, handoff, or workflow artifacts, choose one canonical system and migrate or deprecate the others.
+- Overloaded legacy orchestration files are not valid `keep` candidates. If one file mixes active queue state, re-entry notes, workflow policy, validation gates, role guidance, or historical ledger content, decompose it into harness surfaces.
+- Prefer a clean break on retired legacy orchestration files when the repo is already under git. After extracting the needed knowledge, remove the old file by default and rely on git history for rollback. Keep redirects, archives, or compatibility ledgers only when active humans, scripts, or inbound links still need them.
 - Make the stack-agnostic adaptation to the article explicit. If the repo cannot literally use `Types -> Config -> Repo -> Service -> Runtime -> UI`, document the mapping from the article's original vocabulary to the repo's actual folders and runtime model.
 - If the repo already uses DDD, ports and adapters, CQRS, event sourcing, or a shared-kernel layout, preserve that vocabulary and map it explicitly to the article model instead of forcing a rename-first refactor.
 - Cross-cutting concerns must enter through explicit **Providers** (auth, connectors, telemetry, feature flags, similar). Do not bless ad hoc shortcuts that bypass layer boundaries.
@@ -92,6 +96,7 @@ AI agents can only work with what they can see. Without structured documentation
 <Steps>
 1. **Phase 0 — Discovery and mode selection** (NEVER SKIP)
    - `Read references/migration-playbook.md` for migration inventory, classification rules, and map format
+   - `Read references/orchestration-migration.md` when any planning, handoff, session, backlog, role, or agent-workflow files already exist
    - `Read references/layer-templates.md` for common layer models and the article-aligned vocabulary
    - `Read references/context-strategy.md` for the full signal table
    - `Read references/capability-packs.md` for capability-pack selection and status rules
@@ -100,6 +105,7 @@ AI agents can only work with what they can see. Without structured documentation
    c. Inventory existing artifacts and folder taxonomy. The migration inventory MUST inspect and classify:
       - `AGENTS.md`, `CLAUDE.md`, README docs, and `docs/`
       - ADRs, design docs, plans, and runbooks
+      - orchestration artifacts such as backlog docs, session handoffs, delivery workflows, work-item trees, `.agents/`, role prompts, todo trackers, and current-focus notes
       - security docs
       - product docs, specs, and roadmap artifacts
       - generated docs and schemas
@@ -111,13 +117,26 @@ AI agents can only work with what they can see. Without structured documentation
       - **Bootstrap** = repo is new or only has minimal scaffolding
       - **Migrate** = repo already contains meaningful docs, automation, or legacy conventions worth preserving
    e. For migrate mode, classify every discovered artifact as **keep**, **move**, **merge**, **generate**, **bridge**, **deprecate**, or **ignore**
-   f. For migrate mode, create the migration map before large edits: current artifact, family, classification, destination, history strategy, baseline notes, and gating notes
-   g. Identify architecture layers by reading actual import patterns. Map them to the article vocabulary `Types -> Config -> Repo -> Service -> Runtime -> UI` and record any stack-specific translation explicitly.
-   h. Identify explicit **Providers** for cross-cutting concerns such as auth, connectors, telemetry, and feature flags. If these concerns are currently ad hoc, record the bridge or migration plan.
-   i. Inject dynamic context: git status, diagnostics, CI status, boundary or test health, doc freshness, runtime or UI validation signals, and observability signals if already present
-   j. Inspect existing observability stack components. Decide whether each part should be **keep and document**, **bridge into the proposal architecture**, or **migrate in stages**.
-   k. Select capability packs based on repo needs: runtime/UI validation, full observability stack for agents, review loops, multi-agent delivery, throughput merge policy, evaluation harnesses
-   l. Ask clarifying questions only when stack or migration risk is genuinely ambiguous
+   f. Canonicalize orchestration surfaces. Decide which files remain the active source of truth for:
+      - ongoing planning
+      - session handoff
+      - multi-agent or role workflow
+      - work-item execution artifacts
+      Then rename, merge, or deprecate overlapping legacy files so only one active system remains per concern.
+      If a legacy backlog or handoff file mixes multiple concerns, force a split:
+      - active queue or next-step sequencing -> `docs/PLANS.md`
+      - current work-item state, guardrails, and validation -> `docs/exec-plans/active/{work-item}/tasks.md`
+      - workflow or role policy -> `docs/MULTI_AGENT_DELIVERY.md`, `docs/development_process.md`, and `docs/ai/`
+      - documentation hygiene -> `docs/working_documentation.md`
+      - historical slice ledger -> git history by default, renamed archive only when there is a concrete reader need
+      Do not keep the overloaded file whole just because it contains useful material. In git repos, prefer deleting the retired legacy file after extraction instead of leaving a comfort-copy archive behind.
+   g. For migrate mode, create the migration map before large edits: current artifact, family, classification, destination, history strategy, baseline notes, and gating notes
+   h. Identify architecture layers by reading actual import patterns. Map them to the article vocabulary `Types -> Config -> Repo -> Service -> Runtime -> UI` and record any stack-specific translation explicitly.
+   i. Identify explicit **Providers** for cross-cutting concerns such as auth, connectors, telemetry, and feature flags. If these concerns are currently ad hoc, record the bridge or migration plan.
+   j. Inject dynamic context: git status, diagnostics, CI status, boundary or test health, doc freshness, runtime or UI validation signals, and observability signals if already present
+   k. Inspect existing observability stack components. Decide whether each part should be **keep and document**, **bridge into the proposal architecture**, or **migrate in stages**.
+   l. Select capability packs based on repo needs: runtime/UI validation, full observability stack for agents, review loops, multi-agent delivery, throughput merge policy, evaluation harnesses
+   m. Ask clarifying questions only when stack or migration risk is genuinely ambiguous
 
 2. **Phase 1 — AGENTS.md** (~100 lines, orientation map)
    - `Read references/agents-md-template.md` for the template
@@ -131,6 +150,7 @@ AI agents can only work with what they can see. Without structured documentation
    - `Read references/security-template.md` for `docs/SECURITY.md`
    - `Read references/exec-plan-template.md` for `docs/exec-plans/`
    - `Read references/multi-agent-delivery.md` when the multi-agent delivery pack is selected or an existing role-based workflow is discovered
+   - `Read references/orchestration-migration.md` when legacy planning or handoff files overlap with the harness execution layer
    - `Read references/observability-migration.md` when the observability pack is selected or existing observability tooling is discovered
    - `Read references/runtime-validation-workflow.md` when the runtime/UI validation pack is selected or browser validation already exists
    Required:
@@ -156,10 +176,12 @@ AI agents can only work with what they can see. Without structured documentation
    - `docs/MULTI_AGENT_DELIVERY.md`, `docs/development_process.md`, `docs/working_documentation.md`, `docs/ai/`, and `docs/business/INDEX.md` — when the multi-agent delivery pack is selected
    - `docs/MERGE_POLICY.md`, `docs/EVALS.md`, `docs/OBSERVABILITY.md`, `docs/REVIEW_LOOPS.md`, `docs/RUNTIME_VALIDATION.md`, `dashboards/`, `evals/`, `runbooks/` — when the corresponding capability pack is selected
    - For the multi-agent delivery pack, scaffold a minimal execution layer: `docs/ai/README.md`, `docs/ai/master/AGENTS.md`, `docs/ai/planner/AGENTS.md`, `docs/ai/workers/AGENTS.md.example`, and shared work-item artifacts under `docs/exec-plans/active/{work-item}/` with `requirements.md`, `design.md`, and `tasks.md`, unless the migration map keeps a stronger existing structure
+   - When a stronger legacy orchestration structure exists, migrate the harness layer onto that structure or rename the legacy files into the harness structure. Do not leave both systems active by default.
+   - When legacy backlog or handoff files are overloaded, extract their active knowledge into the harness docs above and remove the old file by default. Keep a redirect or renamed archive only when there is a proven compatibility need. Do not preserve an overloaded `implementation-backlog` or `session-handoff` file as the default workflow surface.
    - For multi-agent delivery, keep workers self-contained: inline the most violated architecture rules in the worker template, require one task per worker session, and make `tasks.md` carry exact file paths, dependencies, and parallel-safe batches
    - For the observability pack, scaffold the article-aligned signal path (app emits logs + OTLP metrics + OTLP traces -> Vector -> Victoria Logs / Victoria Metrics / Victoria Traces -> LogQL / PromQL / TraceQL query surfaces) unless the migration map intentionally keeps or bridges existing tooling instead
    - For the runtime/UI validation pack, scaffold start and restart commands, browser or CDP contracts, before and after snapshot expectations, replayable journeys, and failure triage that links UI symptoms back to logs, metrics, and traces
-   - For migrate mode, preserve useful source material with `git mv`, merge overlapping content, and only emit deprecation stubs when callers or humans still need redirects
+   - For migrate mode, preserve useful source material with `git mv` when a rename is actually useful, merge overlapping content, and prefer git-history-only clean breaks for retired legacy docs. Emit deprecation stubs only when callers or humans still need redirects
 
 4. **Phase 3 — Architecture boundary test**
    - `Read references/boundary-test-template.md` for test skeletons, KNOWN_VIOLATIONS format, and ratchet logic
@@ -250,14 +272,20 @@ Why good: Treats migration as first-class, keeps useful telemetry assets, and ma
 
 <Good>
 User: "make this repo safe for parallel backend and frontend agent work"
-Agent: Runs Phase 0 -> detects meaningful architecture docs and existing exec plans -> selects the multi-agent delivery pack -> scaffolds lean role docs under `docs/ai/`, shared `requirements.md`/`design.md`/`tasks.md` artifacts under `docs/exec-plans/active/{work-item}/`, and self-contained worker templates with inline rules -> keeps the pack status honest as `scaffolded` until the repo-specific rules are filled in.
-Why good: Adds the coordination layer that parallel workers need without forcing a heavyweight process onto the repo.
+Agent: Runs Phase 0 -> detects meaningful architecture docs, existing exec plans, and legacy backlog or handoff docs -> selects the multi-agent delivery pack -> decides which orchestration files stay canonical -> extracts mixed legacy content into harness planning, workflow, and role docs -> removes retired legacy workflow files unless a redirect is genuinely needed -> scaffolds only the missing role docs and work-item artifacts -> keeps the pack status honest as `scaffolded` until the repo-specific rules are filled in.
+Why good: Adds the coordination layer that parallel workers need without leaving duplicate orchestration systems active or preserving legacy comfort copies just because git history exists.
 </Good>
 
 <Bad>
 User: "harness-plugin"
 Agent: Immediately creates AGENTS.md with React/TypeScript template without reading the repo.
 Why bad: Skipped Phase 0 discovery. Assumed stack instead of detecting it.
+</Bad>
+
+<Bad>
+User: "make this repo agent-ready"
+Agent: Detects existing backlog, handoff, and planning docs, then scaffolds `docs/MULTI_AGENT_DELIVERY.md`, `docs/development_process.md`, `docs/working_documentation.md`, and `docs/exec-plans/` without touching the old workflow files.
+Why bad: Leaves two live orchestration systems in place and makes future agents guess which one is canonical.
 </Bad>
 
 <Bad>
@@ -359,6 +387,7 @@ Detailed templates and guides are in `references/` — read on demand per phase:
 - `references/layer-templates.md` — 5 layer models (4 tech stacks + OpenAI original)
 - `references/agents-md-template.md` — AGENTS.md template
 - `references/migration-playbook.md` — bootstrap vs migrate flow, artifact classification, migration map
+- `references/orchestration-migration.md` — canonicalize legacy backlog, handoff, role, and planning systems
 - `references/capability-packs.md` — optional runtime/observability/review/merge/eval packs
 - `references/observability-migration.md` — article-aligned observability path, compatibility table, staged migration rules
 - `references/runtime-validation-workflow.md` — browser/CDP validation loop, snapshots, replay, failure triage

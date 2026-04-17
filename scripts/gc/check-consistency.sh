@@ -11,6 +11,7 @@ REFS_DIR="$PLUGIN_ROOT/skills/harness-plugin/references"
 LAYERS_DOC="$REPO_ROOT/docs/architecture/LAYERS.md"
 GC_REF="$REFS_DIR/gc-patterns.md"
 MIGRATION_REF="$REFS_DIR/migration-playbook.md"
+ORCHESTRATION_REF="$REFS_DIR/orchestration-migration.md"
 PACKS_REF="$REFS_DIR/capability-packs.md"
 MULTI_AGENT_REF="$REFS_DIR/multi-agent-delivery.md"
 OBS_REF="$REFS_DIR/observability-migration.md"
@@ -69,17 +70,27 @@ echo "Check 2: Drift and coverage references"
 for pair in \
   "$SKILL_FILE|Migration mode" \
   "$SKILL_FILE|bridge" \
+  "$SKILL_FILE|orchestration" \
   "$SKILL_FILE|Providers" \
   "$SKILL_FILE|OTLP" \
   "$SKILL_FILE|Runtime/UI validation" \
   "$SKILL_FILE|Multi-Agent Delivery|Multi-agent delivery|multi-agent delivery" \
   "$MIGRATION_REF|Structured Inventory Scope" \
   "$MIGRATION_REF|bridge" \
+  "$MIGRATION_REF|single-purpose system-of-record surface|single-purpose system-of-record" \
+  "$MIGRATION_REF|git history|clean-break removal|remove it and rely on git history" \
+  "$MIGRATION_REF|Orchestration Canonicalization Checklist" \
+  "$ORCHESTRATION_REF|Overloaded Legacy File Rule" \
+  "$ORCHESTRATION_REF|Clean-Break Bias" \
+  "$ORCHESTRATION_REF|duplicate" \
+  "$ORCHESTRATION_REF|canonical" \
   "$PACKS_REF|Runtime/UI validation" \
   "$PACKS_REF|Full observability stack for agents" \
   "$PACKS_REF|Multi-Agent Delivery|Multi-agent delivery|multi-agent delivery" \
   "$MULTI_AGENT_REF|One task per worker session" \
   "$MULTI_AGENT_REF|Analysis informs, never blocks" \
+  "$MULTI_AGENT_REF|overloaded legacy queue or handoff knowledge" \
+  "$MULTI_AGENT_REF|remove the old file by default|removed by default" \
   "$OBS_REF|LogQL" \
   "$OBS_REF|PromQL" \
   "$OBS_REF|TraceQL" \

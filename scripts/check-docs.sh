@@ -70,6 +70,7 @@ for f in \
   plugins/harness-plugin/.codex-plugin/plugin.json \
   plugins/harness-plugin/skills/harness-plugin/SKILL.md \
   plugins/harness-plugin/skills/harness-plugin/references/migration-playbook.md \
+  plugins/harness-plugin/skills/harness-plugin/references/orchestration-migration.md \
   plugins/harness-plugin/skills/harness-plugin/references/multi-agent-delivery.md \
   plugins/harness-plugin/skills/harness-plugin/references/capability-packs.md \
   plugins/harness-plugin/skills/harness-plugin/references/observability-migration.md \
@@ -172,6 +173,9 @@ for file in "$SKILL"; do
   require_contains "$file" 'Migration mode|Migrate mode|migrat' "migration workflow documented in $(basename "$file")"
   require_contains "$file" 'migration map' "migration map documented in $(basename "$file")"
   require_contains "$file" 'bridge' "bridge classification documented in $(basename "$file")"
+  require_contains "$file" 'orchestration' "orchestration migration documented in $(basename "$file")"
+  require_contains "$file" 'Overloaded legacy orchestration files|overloaded legacy' "overloaded orchestration split documented in $(basename "$file")"
+  require_contains "$file" 'clean break|git history|remove the old file by default|remove the old path after extraction' "clean-break legacy removal documented in $(basename "$file")"
   require_contains "$file" 'Providers' "Provider model documented in $(basename "$file")"
   require_contains "$file" 'Types[[:space:]]*->[[:space:]]*Config[[:space:]]*->[[:space:]]*Repo[[:space:]]*->[[:space:]]*Service[[:space:]]*->[[:space:]]*Runtime[[:space:]]*->[[:space:]]*UI' "article layer model documented in $(basename "$file")"
   require_contains "$file" 'PRODUCT_SENSE\.md' "PRODUCT_SENSE.md documented in $(basename "$file")"
@@ -196,6 +200,9 @@ for file in "$README"; do
   require_contains "$file" 'Migration mode|Migrate mode|migrat' "migration workflow documented in $(basename "$file")"
   require_contains "$file" 'migration map' "migration map documented in $(basename "$file")"
   require_contains "$file" 'bridge' "bridge classification documented in $(basename "$file")"
+  require_contains "$file" 'orchestration' "orchestration migration documented in $(basename "$file")"
+  require_contains "$file" 'overloaded|split' "overloaded orchestration split documented in $(basename "$file")"
+  require_contains "$file" 'clean break|git history|remove the old file by default|remove the old path after extraction' "clean-break legacy removal documented in $(basename "$file")"
   require_contains "$file" 'Providers' "Provider model documented in $(basename "$file")"
   require_contains "$file" 'Types[[:space:]]*->[[:space:]]*Config[[:space:]]*->[[:space:]]*Repo[[:space:]]*->[[:space:]]*Service[[:space:]]*->[[:space:]]*Runtime[[:space:]]*->[[:space:]]*UI' "article layer model documented in $(basename "$file")"
   require_contains "$file" 'Capability Packs|capability packs' "capability packs documented in $(basename "$file")"
@@ -229,6 +236,8 @@ echo ""
 echo "--- Repo architecture wording ---"
 require_contains "$AGENTS_DOC" '\.agents/plugins/marketplace\.json' 'AGENTS.md points to the Codex marketplace'
 require_contains "$AGENTS_DOC" 'plugins/harness-plugin/\.codex-plugin/plugin\.json' 'AGENTS.md points to the Codex plugin manifest'
+require_contains "$AGENTS_DOC" 'overloaded legacy backlog or handoff files' 'AGENTS.md documents the overloaded-orchestration migration rule'
+require_contains "$AGENTS_DOC" 'remove the retired legacy path by default|git repos' 'AGENTS.md documents the clean-break legacy rule'
 require_contains "$LAYERS_DOC" '\.agents/plugins/marketplace\.json' 'LAYERS.md documents the Codex marketplace layer'
 for file in "$README" "$INSTALL" "$AGENTS_DOC" "$ARCHITECTURE_DOC" "$SECURITY_DOC" "$LAYERS_DOC"; do
   require_absent "$file" 'README_CN' 'README_CN references'

@@ -32,6 +32,9 @@ Use this for existing repos with meaningful docs, CI, tests, scripts, telemetry,
 - inventory current repo artifacts before major edits
 - classify each discovered artifact as `keep`, `move`, `merge`, `generate`, `bridge`, `deprecate`, or `ignore`
 - write a migration map before sweeping moves or rewrites
+- canonicalize overlapping backlog, handoff, role, and planning files so only one default orchestration system remains active
+- treat overloaded backlog or handoff files as forced split targets: if one file mixes queue state, session notes, workflow policy, validation gates, or historical ledger content, decompose it across harness docs instead of preserving it whole
+- prefer a clean break on retired legacy workflow files when the repo is already under git: remove the old path after extraction unless a concrete compatibility need still exists
 - preserve history with `git mv` where possible
 - merge or explicitly deprecate useful legacy docs instead of overwriting them
 - baseline legacy architecture and lint debt first, then ratchet gradually
@@ -106,6 +109,18 @@ The multi-agent delivery pack adds a lean coordination layer for repos where mul
 - an "analysis informs, never blocks" workflow with task-checkbox progress tracking
 
 It stays optional and intentionally small. It should not force a heavyweight 10-agent operating system onto a repo where one or two sessions can safely hold the context.
+
+When a repo already has ad hoc backlog, handoff, or role-workflow files, the
+pack now treats those as migration targets. The plugin must either adopt that
+legacy structure as canonical or rename or merge it into the harness execution
+layer; it should not leave two active orchestration defaults behind.
+
+If one of those legacy files is overloaded and mixes planning, re-entry notes,
+workflow rules, validation, or historical ledger content, the plugin should
+not adopt it whole. It must split that material across the harness planning,
+workflow, and exec-plan surfaces, then remove the old file by default. In git
+repos, archive or redirect pages should exist only when a concrete
+compatibility need remains.
 
 ## Knowledge Base and GC Story
 
@@ -191,8 +206,10 @@ project-root/
 - Classify each discovered artifact as `keep`, `move`, `merge`, `generate`, `bridge`, `deprecate`, or `ignore`.
 - Preserve history with `git mv` whenever a file can relocate cleanly.
 - Merge overlapping docs when they contain useful knowledge; do not destructively overwrite them.
+- In git repos, prefer clean-break removal for retired legacy workflow docs once links are updated.
 - Create deprecation stubs only when humans, scripts, or links still need redirects.
 - Establish baselines for current violations so CI gets tighter over time instead of breaking on day one.
+- Do not preserve overloaded legacy backlog or handoff files as canonical defaults; split mixed concerns across harness docs and demote the old file.
 
 ## Supported Stacks
 
