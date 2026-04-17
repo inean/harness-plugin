@@ -176,6 +176,7 @@ for file in "$SKILL"; do
   require_contains "$file" 'orchestration' "orchestration migration documented in $(basename "$file")"
   require_contains "$file" 'Overloaded legacy orchestration files|overloaded legacy' "overloaded orchestration split documented in $(basename "$file")"
   require_contains "$file" 'clean break|git history|remove the old file by default|remove the old path after extraction' "clean-break legacy removal documented in $(basename "$file")"
+  require_contains "$file" 'Preserve the strongest legacy guardrails|preserve their normative content|deep-agent docs|docs/development_process\.md|playbooks are checklists, not slash commands' "legacy workflow guardrail preservation documented in $(basename "$file")"
   require_contains "$file" 'Providers' "Provider model documented in $(basename "$file")"
   require_contains "$file" 'Types[[:space:]]*->[[:space:]]*Config[[:space:]]*->[[:space:]]*Repo[[:space:]]*->[[:space:]]*Service[[:space:]]*->[[:space:]]*Runtime[[:space:]]*->[[:space:]]*UI' "article layer model documented in $(basename "$file")"
   require_contains "$file" 'PRODUCT_SENSE\.md' "PRODUCT_SENSE.md documented in $(basename "$file")"
@@ -203,6 +204,7 @@ for file in "$README"; do
   require_contains "$file" 'orchestration' "orchestration migration documented in $(basename "$file")"
   require_contains "$file" 'overloaded|split' "overloaded orchestration split documented in $(basename "$file")"
   require_contains "$file" 'clean break|git history|remove the old file by default|remove the old path after extraction' "clean-break legacy removal documented in $(basename "$file")"
+  require_contains "$file" 'strongest legacy guardrails|deep-agent docs|docs/development_process\.md|use the playbooks' "legacy workflow guardrail preservation documented in $(basename "$file")"
   require_contains "$file" 'Providers' "Provider model documented in $(basename "$file")"
   require_contains "$file" 'Types[[:space:]]*->[[:space:]]*Config[[:space:]]*->[[:space:]]*Repo[[:space:]]*->[[:space:]]*Service[[:space:]]*->[[:space:]]*Runtime[[:space:]]*->[[:space:]]*UI' "article layer model documented in $(basename "$file")"
   require_contains "$file" 'Capability Packs|capability packs' "capability packs documented in $(basename "$file")"
@@ -238,6 +240,7 @@ require_contains "$AGENTS_DOC" '\.agents/plugins/marketplace\.json' 'AGENTS.md p
 require_contains "$AGENTS_DOC" 'plugins/harness-plugin/\.codex-plugin/plugin\.json' 'AGENTS.md points to the Codex plugin manifest'
 require_contains "$AGENTS_DOC" 'overloaded legacy backlog or handoff files' 'AGENTS.md documents the overloaded-orchestration migration rule'
 require_contains "$AGENTS_DOC" 'remove the retired legacy path by default|git repos' 'AGENTS.md documents the clean-break legacy rule'
+require_contains "$AGENTS_DOC" 'Preserve strong legacy workflow semantics|anti-bypass contract rules|validation gates' 'AGENTS.md documents strong legacy workflow preservation'
 require_contains "$LAYERS_DOC" '\.agents/plugins/marketplace\.json' 'LAYERS.md documents the Codex marketplace layer'
 for file in "$README" "$INSTALL" "$AGENTS_DOC" "$ARCHITECTURE_DOC" "$SECURITY_DOC" "$LAYERS_DOC"; do
   require_absent "$file" 'README_CN' 'README_CN references'

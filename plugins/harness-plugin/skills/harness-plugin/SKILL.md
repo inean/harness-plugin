@@ -60,11 +60,12 @@ AI agents can only work with what they can see. Without structured documentation
 1. **Give agents a map, not an encyclopedia** — AGENTS.md ~100 lines, progressive disclosure
 2. **If agents can't see it, it doesn't exist** — all knowledge machine-readable in repo
 3. **Migration before generation** — inventory and classify legacy artifacts before large edits
-4. **Enforce architecture and taste mechanically** — linters, tests, and checks, not prose alone
-5. **Every error message is agent context** — remediation instructions in error output
-6. **Boring technology wins** — composable, stable, well-trained-on APIs
-7. **Ratchets beat flag days** — KNOWN_VIOLATIONS and legacy gaps should only shrink
-8. **Scaffold honest capability packs** — document what is wired, what is stubbed, and what remains repo-specific
+4. **Preserve the strongest legacy guardrails** — when old guides encode hard engineering rules, ordered delivery stages, anti-bypass contract gates, or validation requirements, carry them into the new canonical docs instead of genericizing them away
+5. **Enforce architecture and taste mechanically** — linters, tests, and checks, not prose alone
+6. **Every error message is agent context** — remediation instructions in error output
+7. **Boring technology wins** — composable, stable, well-trained-on APIs
+8. **Ratchets beat flag days** — KNOWN_VIOLATIONS and legacy gaps should only shrink
+9. **Scaffold honest capability packs** — document what is wired, what is stubbed, and what remains repo-specific
 </Principles>
 
 <Execution_Policy>
@@ -77,6 +78,8 @@ AI agents can only work with what they can see. Without structured documentation
 - For migrate mode, produce an explicit migration map in `docs/exec-plans/active/harness-migration-map.md` or an equivalent checked-in plan before sweeping file moves or rewrites.
 - Use `git mv` for doc restructuring whenever possible to preserve history.
 - Never destructively overwrite curated docs, CI, schemas, runbooks, dashboards, or onboarding docs. Merge overlap when useful, baseline gaps first, and add deprecation stubs only when inbound references would otherwise break.
+- When removing or replacing contributor, onboarding, or deep-agent docs, preserve their normative content. Ordered delivery stages, anti-contract-bypass rules, testing or typing bars, architecture guardrails, and validation gates must survive in the new canonical docs instead of being reduced to generic "follow the playbooks" prose.
+- Root `AGENTS.md` stays concise, but migrate mode must keep or create a deeper repo-specific guide such as `docs/ai/AGENTS.md` when the legacy repo already had stronger hard rules than the root map can hold.
 - Do not leave two active orchestration systems in place. If new harness planning or multi-agent docs overlap with legacy backlog, handoff, or workflow artifacts, choose one canonical system and migrate or deprecate the others.
 - Overloaded legacy orchestration files are not valid `keep` candidates. If one file mixes active queue state, re-entry notes, workflow policy, validation gates, role guidance, or historical ledger content, decompose it into harness surfaces.
 - Prefer a clean break on retired legacy orchestration files when the repo is already under git. After extracting the needed knowledge, remove the old file by default and rely on git history for rollback. Keep redirects, archives, or compatibility ledgers only when active humans, scripts, or inbound links still need them.
@@ -104,6 +107,7 @@ AI agents can only work with what they can see. Without structured documentation
    b. Map directory structure (maxdepth 3, exclude node_modules/.git)
    c. Inventory existing artifacts and folder taxonomy. The migration inventory MUST inspect and classify:
       - `AGENTS.md`, `CLAUDE.md`, README docs, and `docs/`
+      - contributor, onboarding, and deep-agent docs that encode hard rules, ordered delivery logic, or validation gates
       - ADRs, design docs, plans, and runbooks
       - orchestration artifacts such as backlog docs, session handoffs, delivery workflows, work-item trees, `.agents/`, role prompts, todo trackers, and current-focus notes
       - security docs
@@ -130,6 +134,7 @@ AI agents can only work with what they can see. Without structured documentation
       - documentation hygiene -> `docs/working_documentation.md`
       - historical slice ledger -> git history by default, renamed archive only when there is a concrete reader need
       Do not keep the overloaded file whole just because it contains useful material. In git repos, prefer deleting the retired legacy file after extraction instead of leaving a comfort-copy archive behind.
+      If a removed contributor, onboarding, or deep-guide doc encodes strict stage order, upstream contract gates, playbook semantics, or hard engineering bars, extract that normative content into `docs/development_process.md`, `docs/ai/AGENTS.md`, worker templates, or other canonical surfaces. Do not drop it or replace it with vague workflow prose.
    g. For migrate mode, create the migration map before large edits: current artifact, family, classification, destination, history strategy, baseline notes, and gating notes
    h. Identify architecture layers by reading actual import patterns. Map them to the article vocabulary `Types -> Config -> Repo -> Service -> Runtime -> UI` and record any stack-specific translation explicitly.
    i. Identify explicit **Providers** for cross-cutting concerns such as auth, connectors, telemetry, and feature flags. If these concerns are currently ad hoc, record the bridge or migration plan.
@@ -143,6 +148,7 @@ AI agents can only work with what they can see. Without structured documentation
    - Fill in from Phase 0 discovery — don't invent, reflect what exists
    - Point to docs/ for details, don't inline them
    - In migrate mode, merge the useful parts of existing AGENTS.md and any legacy onboarding docs instead of flattening everything into a new file
+   - In migrate mode, if the repository already has a stronger deep guide than the root map can carry, preserve that material in `docs/ai/AGENTS.md` or an equivalent canonical deep-guide surface and make the root map point there
    - Include the migration map, capability-pack docs, and pack status (`live`, `scaffolded`, `deferred`) in the navigation path when they exist
 
 3. **Phase 2 — Knowledge base and architecture docs**
@@ -176,6 +182,8 @@ AI agents can only work with what they can see. Without structured documentation
    - `docs/MULTI_AGENT_DELIVERY.md`, `docs/development_process.md`, `docs/working_documentation.md`, `docs/ai/`, and `docs/business/INDEX.md` — when the multi-agent delivery pack is selected
    - `docs/MERGE_POLICY.md`, `docs/EVALS.md`, `docs/OBSERVABILITY.md`, `docs/REVIEW_LOOPS.md`, `docs/RUNTIME_VALIDATION.md`, `dashboards/`, `evals/`, `runbooks/` — when the corresponding capability pack is selected
    - For the multi-agent delivery pack, scaffold a minimal execution layer: `docs/ai/README.md`, `docs/ai/master/AGENTS.md`, `docs/ai/planner/AGENTS.md`, `docs/ai/workers/AGENTS.md.example`, and shared work-item artifacts under `docs/exec-plans/active/{work-item}/` with `requirements.md`, `design.md`, and `tasks.md`, unless the migration map keeps a stronger existing structure
+   - If migration removes a contributor or delivery-workflow doc, `docs/development_process.md` must preserve any legacy ordered delivery stages, contract-gating rules, validation gates, and "playbooks are checklists, not slash commands" semantics that were still canonical
+   - If migration keeps or creates a deep agent guide such as `docs/ai/AGENTS.md`, preserve the repo's hard technical guardrails there instead of collapsing them into the root AGENTS map or losing them entirely
    - When a stronger legacy orchestration structure exists, migrate the harness layer onto that structure or rename the legacy files into the harness structure. Do not leave both systems active by default.
    - When legacy backlog or handoff files are overloaded, extract their active knowledge into the harness docs above and remove the old file by default. Keep a redirect or renamed archive only when there is a proven compatibility need. Do not preserve an overloaded `implementation-backlog` or `session-handoff` file as the default workflow surface.
    - For multi-agent delivery, keep workers self-contained: inline the most violated architecture rules in the worker template, require one task per worker session, and make `tasks.md` carry exact file paths, dependencies, and parallel-safe batches

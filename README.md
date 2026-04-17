@@ -37,6 +37,7 @@ Use this for existing repos with meaningful docs, CI, tests, scripts, telemetry,
 - prefer a clean break on retired legacy workflow files when the repo is already under git: remove the old path after extraction unless a concrete compatibility need still exists
 - preserve history with `git mv` where possible
 - merge or explicitly deprecate useful legacy docs instead of overwriting them
+- preserve the strongest legacy guardrails when removing contributor, onboarding, or deep-agent docs: ordered delivery stages, anti-contract-bypass rules, validation gates, and hard engineering bars must survive in canonical docs
 - baseline legacy architecture and lint debt first, then ratchet gradually
 
 ## Proposal Architecture
@@ -121,6 +122,12 @@ not adopt it whole. It must split that material across the harness planning,
 workflow, and exec-plan surfaces, then remove the old file by default. In git
 repos, archive or redirect pages should exist only when a concrete
 compatibility need remains.
+
+If migration removes a stronger contributor or delivery-process guide, the pack
+must preserve those semantics in canonical destinations such as
+`docs/development_process.md`, `docs/ai/AGENTS.md`, and worker templates.
+Replacing concrete rules with generic "use the playbooks" wording is a
+regression, not a migration.
 
 ## Knowledge Base and GC Story
 
@@ -210,6 +217,7 @@ project-root/
 - Create deprecation stubs only when humans, scripts, or links still need redirects.
 - Establish baselines for current violations so CI gets tighter over time instead of breaking on day one.
 - Do not preserve overloaded legacy backlog or handoff files as canonical defaults; split mixed concerns across harness docs and demote the old file.
+- If a contributor, onboarding, or deep guide was stronger than the new root orientation map, preserve its hard rules in `docs/ai/AGENTS.md`, `docs/development_process.md`, or equivalent canonical docs instead of dropping them.
 
 ## Supported Stacks
 

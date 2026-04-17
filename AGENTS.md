@@ -80,6 +80,7 @@ A documentation-first plugin repository that bootstraps or migrates agent-ready 
 7. **Reference files must stay independent** — no cross-references between reference files (exceptions: `stack-routing.md`, `ci-templates.md`).
 8. **Marketplace source path must remain stable** — `.agents/plugins/marketplace.json` should point to `./plugins/harness-plugin`.
 9. **Repo-level docs must stay aligned with the stronger migration rule** — overloaded legacy backlog or handoff files are not valid `keep` candidates; the plugin must split them across harness docs and, in git repos, remove the retired legacy path by default instead of preserving comfort-copy archives.
+10. **Preserve strong legacy workflow semantics** — when migration removes contributor, onboarding, or deep-agent docs, the shipped skill and references must keep ordered delivery stages, anti-bypass contract rules, validation gates, and hard guardrails alive in canonical docs instead of flattening them into generic playbook language.
 
 ## How to modify
 
@@ -88,7 +89,7 @@ A documentation-first plugin repository that bootstraps or migrates agent-ready 
 - **Changing Codex metadata:** edit `plugins/harness-plugin/.codex-plugin/plugin.json`
 - **Changing marketplace availability:** edit `.agents/plugins/marketplace.json`
 - **Updating version:** change the Codex plugin manifest, `SKILL.md`, and `INSTALL.md`
-- **Changing migration behavior:** keep `README.md`, `AGENTS.md`, `scripts/check-docs.sh`, and `scripts/gc/check-consistency.sh` aligned with the plugin references so the sibling repo enforces the same orchestration rules it ships
+- **Changing migration behavior:** keep `README.md`, `AGENTS.md`, `scripts/check-docs.sh`, and `scripts/gc/check-consistency.sh` aligned with the plugin references so the sibling repo enforces the same orchestration rules it ships, including preservation of strong contributor and deep-guide semantics
 
 ## How to test
 

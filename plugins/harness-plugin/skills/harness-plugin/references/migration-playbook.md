@@ -42,6 +42,13 @@ Every discovered artifact must receive exactly one primary classification:
 
 Use `bridge` for legacy observability stacks, partially compatible docs, or existing runtime tooling that should remain live while the repo converges on the harness structure.
 
+Contributor, onboarding, and deep-agent docs with hard rules are rarely
+`ignore`. If they encode ordered delivery stages, anti-contract-bypass rules,
+testing or typing bars, or validation gates, default classification is usually
+`merge`. When the old file is removed, that normative content must survive in
+canonical docs such as `docs/development_process.md`, `docs/ai/AGENTS.md`, or a
+worker template.
+
 For orchestration artifacts, default bias is stricter:
 
 - if the file remains the canonical workflow, `move` or `merge` the harness onto it
@@ -97,6 +104,7 @@ Rules:
 10. If the repo already has planning, handoff, backlog, or role-workflow files, classify them first. The migration must either adopt them as canonical or retire them; do not leave duplicate workflow systems active.
 11. If a legacy orchestration file mixes planning, session notes, workflow rules, validation gates, or historical ledger content, split it by concern across the harness docs. Do not preserve the overloaded file as the canonical default.
 12. In git repos, do not keep compatibility archives or redirect stubs "just in case". If no concrete caller still needs the old path, remove it and rely on git history.
+13. If a contributor, onboarding, or deep-guide doc is removed, preserve its hard workflow semantics and guardrails in the new canonical docs. "Use the playbooks" is not an adequate replacement when the legacy doc was stronger.
 
 ## Required Migration Map
 

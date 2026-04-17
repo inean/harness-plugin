@@ -75,11 +75,16 @@ for pair in \
   "$SKILL_FILE|OTLP" \
   "$SKILL_FILE|Runtime/UI validation" \
   "$SKILL_FILE|Multi-Agent Delivery|Multi-agent delivery|multi-agent delivery" \
+  "$SKILL_FILE|Preserve the strongest legacy guardrails|preserve their normative content" \
+  "$SKILL_FILE|docs/development_process\.md" \
+  "$SKILL_FILE|playbooks are checklists, not slash commands" \
   "$MIGRATION_REF|Structured Inventory Scope" \
   "$MIGRATION_REF|bridge" \
   "$MIGRATION_REF|single-purpose system-of-record surface|single-purpose system-of-record" \
   "$MIGRATION_REF|git history|clean-break removal|remove it and rely on git history" \
   "$MIGRATION_REF|Orchestration Canonicalization Checklist" \
+  "$MIGRATION_REF|Contributor, onboarding, and deep-agent docs|contributor, onboarding, and deep-agent docs" \
+  "$MIGRATION_REF|Use the playbooks|use the playbooks" \
   "$ORCHESTRATION_REF|Overloaded Legacy File Rule" \
   "$ORCHESTRATION_REF|Clean-Break Bias" \
   "$ORCHESTRATION_REF|duplicate" \
@@ -91,6 +96,8 @@ for pair in \
   "$MULTI_AGENT_REF|Analysis informs, never blocks" \
   "$MULTI_AGENT_REF|overloaded legacy queue or handoff knowledge" \
   "$MULTI_AGENT_REF|remove the old file by default|removed by default" \
+  "$MULTI_AGENT_REF|Preserve Legacy Workflow Semantics" \
+  "$MULTI_AGENT_REF|playbooks are session checklists, not slash commands" \
   "$OBS_REF|LogQL" \
   "$OBS_REF|PromQL" \
   "$OBS_REF|TraceQL" \

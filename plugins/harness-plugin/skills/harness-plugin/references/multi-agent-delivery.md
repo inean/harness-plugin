@@ -55,6 +55,31 @@ content, do not adopt it whole. Split that knowledge across the harness docs
 and remove the old file by default. Keep an archive, ledger, or redirect only
 when a concrete compatibility need remains.
 
+## Preserve Legacy Workflow Semantics
+
+If migrate mode removes contributor, onboarding, or delivery-workflow docs,
+preserve the legacy workflow semantics that were actually protecting the repo.
+
+Typical examples:
+
+- ordered delivery stages such as backend -> UX -> UI spec -> renderer ->
+  integration
+- anti-bypass contract rules such as "do not skip back to frontend before the
+  backend contract changes"
+- "playbooks are session checklists, not slash commands" semantics
+- hard engineering bars such as testing posture, typing rules, or mocks vs
+  fakes guidance when those docs were canonical
+- validation gates and evidence rules
+
+Default destination:
+
+- `docs/development_process.md` for ordered delivery and contract-gating rules
+- `docs/ai/AGENTS.md` or equivalent deep guide for hard repo-specific guardrails
+- `docs/ai/workers/AGENTS.md.example` for worker-safe inline reminders
+
+Do not replace a strong legacy process doc with vague wording like "use the
+matching playbook" if the old document carried stricter semantics.
+
 ## Role Split
 
 ### Master
@@ -166,6 +191,8 @@ Good migration outcome:
 - one documented canonical multi-agent workflow surface
 - overloaded legacy queue or handoff knowledge is split across plan, workflow,
   and exec-plan docs rather than left in one catch-all file
+- strict legacy workflow and guardrail semantics still exist in canonical docs
+  after the old file is removed
 - legacy files are removed by default, with redirects kept only for proven compatibility needs
 
 ## `docs/MULTI_AGENT_DELIVERY.md` Structure
